@@ -28,11 +28,10 @@ if os.path.exists(body_font_path):
     with open(body_font_path, "rb") as f:
         body_font_base64 = base64.b64encode(f.read()).decode()
 
-# 3. PC/모바일 동시 대응 반응형 CSS 주입
+# 3-1. 폰트 주입 (변수가 필요한 부분만 f-string 처리)
 st.markdown(
     f"""
 <style>
-    /* 폰트 정의 */
     @font-face {{
         font-family: 'PretendardTitle';
         src: url(data:font/otf;charset=utf-8;base64,{title_font_base64}) format('opentype');
@@ -45,37 +44,45 @@ st.markdown(
         font-weight: 500;
         font-display: swap;
     }}
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
+# 3-2. PC/모바일 반응형 디자인 CSS (일반 문자열로 f-string 중괄호 오류 원천 차단)
+st.markdown(
+    """
+<style>
     /* 전체 앱 배경 및 반응형 컨테이너 */
-    .stApp {{
+    .stApp {
         background: linear-gradient(135deg, #F0F4FF 0%, #E6EDF9 50%, #F5F3FF 100%);
         font-family: 'PretendardBody', -apple-system, BlinkMacSystemFont, sans-serif !important;
         -webkit-font-smoothing: antialiased;
         word-break: keep-all;
         overflow-wrap: break-word;
-    }}
+    }
 
     /* PC / 태블릿 / 모바일 적응형 가로 폭 제어 */
-    .block-container {{
+    .block-container {
         width: 100% !important;
         max-width: 820px !important;
         padding-top: 2rem !important;
         padding-bottom: 4rem !important;
         padding-left: clamp(1rem, 3vw, 2.5rem) !important;
         padding-right: clamp(1rem, 3vw, 2.5rem) !important;
-    }}
+    }
 
     /* 기본 텍스트 폰트 적용 */
-    html, body, [class*="css"], p, span, label, div, .stMarkdown, .stText {{
+    html, body, [class*="css"], p, span, label, div, .stMarkdown, .stText {
         font-family: 'PretendardBody', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }}
+    }
 
-    h1, h2, h3, .hero-title, .result-role, .stButton>button {{
+    h1, h2, h3, .hero-title, .result-role, .stButton>button {
         font-family: 'PretendardTitle', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }}
+    }
 
     /* 히어로 헤더 */
-    .hero-badge {{
+    .hero-badge {
         display: inline-block;
         background: linear-gradient(90deg, #3B82F6, #8B5CF6);
         color: white;
@@ -85,9 +92,9 @@ st.markdown(
         font-weight: 700;
         margin-bottom: 12px;
         box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
-    }}
+    }
 
-    .hero-title {{
+    .hero-title {
         font-size: clamp(1.8rem, 4vw, 2.6rem);
         font-weight: 900;
         line-height: 1.25;
@@ -96,15 +103,15 @@ st.markdown(
         -webkit-text-fill-color: transparent;
         text-align: center;
         margin-bottom: 8px;
-    }}
+    }
 
-    .hero-sub {{
+    .hero-sub {
         font-size: clamp(0.95rem, 2vw, 1.15rem);
         color: #475569;
         text-align: center;
         margin-bottom: 24px;
         line-height: 1.5;
-    }}
+    }
 
     /* 카드 스타일 (PC/모바일 하이브리드) */
     .intro-box {
@@ -162,47 +169,47 @@ st.markdown(
         text-align: center;
     }
 
-    .spec-item {{
+    .spec-item {
         background: #F8FAFC;
         padding: 10px 8px;
         border-radius: 12px;
         border: 1px solid #E2E8F0;
-    }}
+    }
 
-    .spec-title {{
+    .spec-title {
         font-size: 0.75rem;
         color: #64748B;
         font-weight: 600;
-    }}
+    }
 
-    .spec-val {{
+    .spec-val {
         font-size: clamp(0.95rem, 1.8vw, 1.15rem);
         color: #2563EB;
         font-weight: 800;
         margin-top: 2px;
-    }}
+    }
 
     /* 문항 배지 및 질문 본문 */
-    .q-badge {{
+    .q-badge {
         color: #3B82F6;
         font-weight: 900;
         font-size: clamp(1rem, 2vw, 1.25rem);
         margin-bottom: 6px;
-    }}
+    }
 
-    .q-text {{
+    .q-text {
         color: #0F172A;
         font-weight: 700;
         font-size: clamp(1.05rem, 2.2vw, 1.28rem);
         line-height: 1.55;
-    }}
+    }
 
-    /* 선택지 라디오 버튼 커스텀 (터치 영역 확보) */
-    div[role="radiogroup"] {{
+    /* 선택지 라디오 버튼 커스텀 */
+    div[role="radiogroup"] {
         gap: 10px !important;
-    }}
+    }
 
-    div[role="radiogroup"] > label {{
+    div[role="radiogroup"] > label {
         background: #FFFFFF !important;
         border: 1.5px solid #E2E8F0 !important;
         padding: clamp(12px, 2.5vw, 18px) clamp(14px, 3vw, 22px) !important;
@@ -215,29 +222,29 @@ st.markdown(
         -webkit-tap-highlight-color: transparent !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
         transition: all 0.2s ease !important;
-    }}
+    }
 
-    @media (hover: hover) {{
-        div[role="radiogroup"] > label:hover {{
+    @media (hover: hover) {
+        div[role="radiogroup"] > label:hover {
             border-color: #93C5FD !important;
             background-color: #F8FAFC !important;
             transform: translateX(4px);
-        }}
-    }}
+        }
+    }
 
-    div[role="radiogroup"] > label:active {{
+    div[role="radiogroup"] > label:active {
         background-color: #EFF6FF !important;
         border-color: #3B82F6 !important;
-    }}
+    }
 
-    div[role="radiogroup"] > label p {{
+    div[role="radiogroup"] > label p {
         font-size: clamp(0.95rem, 1.8vw, 1.05rem) !important;
         line-height: 1.5 !important;
         color: #1E293B !important;
-    }}
+    }
 
     /* 버튼 스타일 */
-    .stButton > button {{
+    .stButton > button {
         background: linear-gradient(90deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%) !important;
         color: white !important;
         font-size: clamp(1rem, 2vw, 1.15rem) !important;
@@ -248,17 +255,17 @@ st.markdown(
         box-shadow: 0 8px 20px -3px rgba(79, 70, 229, 0.35) !important;
         -webkit-tap-highlight-color: transparent !important;
         transition: all 0.25s ease !important;
-    }}
+    }
 
-    @media (hover: hover) {{
-        .stButton > button:hover {{
+    @media (hover: hover) {
+        .stButton > button:hover {
             transform: scale(1.015) !important;
             box-shadow: 0 12px 24px -3px rgba(79, 70, 229, 0.5) !important;
-        }}
-    }}
+        }
+    }
 
     /* 결과 배너 */
-    .result-banner {{
+    .result-banner {
         background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E3A8A 100%);
         border-radius: 20px;
         padding: clamp(26px, 5vw, 42px) clamp(18px, 4vw, 32px);
@@ -266,17 +273,17 @@ st.markdown(
         color: white;
         margin-bottom: 24px;
         box-shadow: 0 16px 35px -8px rgba(30, 27, 75, 0.45);
-    }}
+    }
 
-    .result-subtext {{
+    .result-subtext {
         font-size: 0.85rem;
         letter-spacing: 2px;
         text-transform: uppercase;
         color: #93C5FD;
         margin-bottom: 6px;
-    }}
+    }
 
-    .result-role {{
+    .result-role {
         font-size: clamp(1.9rem, 5vw, 2.8rem);
         font-weight: 900;
         background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
@@ -284,13 +291,13 @@ st.markdown(
         -webkit-text-fill-color: transparent;
         margin: 8px 0;
         line-height: 1.25;
-    }}
+    }
 
-    .result-tagline {{
+    .result-tagline {
         font-size: clamp(0.98rem, 2vw, 1.18rem);
         color: #E2E8F0;
         line-height: 1.5;
-    }}
+    }
 </style>
 """,
     unsafe_allow_html=True,
