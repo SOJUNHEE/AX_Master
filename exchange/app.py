@@ -201,7 +201,6 @@ for cur_code, info in CURRENCY_INFO.items():
         "단위": info["unit"]
     })
 
-# 주요 3개 통화 카드 표시
 display_cards = [c for c in ["USD", "KRW", "JPY", "EUR"] if c != base_currency][:3]
 if len(display_cards) < 3:
     display_cards.append("CNY")
@@ -235,12 +234,11 @@ with st.expander("📋 전체 10개국 실시간 일괄 정산표 (클릭하여 
 st.divider()
 
 # =============================================================================
-# [SECTION 2] 📈 신규 기능: 일자별 / 분기별 / 연도별 환율 증감률 & 가치 평가 모듈
+# [SECTION 2] 📈 시계열 분석 및 가치 평가 모듈
 # =============================================================================
 st.subheader("📈 환율 시계열 분석 및 현재 가치 높낮이(고·저평가) 평가")
 st.caption("일자별, 분기별, 연도별 환율 추이와 전기간 대비 증감률(%)을 비교하고, 현재 환율이 역사적 고점인지 저점인지 정량 평가합니다.")
 
-# 분석 대상 통화 선택 (기본적으로 계산기 통화와 연결 가능)
 c_sub_sel1, c_sub_sel2 = st.columns([1.5, 2.5])
 with c_sub_sel1:
     target_currency = st.selectbox(
@@ -250,18 +248,13 @@ with c_sub_sel1:
         format_func=lambda x: f"{CURRENCY_INFO[x]['flag']} {x} ({CURRENCY_INFO[x]['name']})"
     )
 
-# 기준: 원화(KRW) 대비 대상 통화 환율 계산 (1 외화 당 원화 환율, JPY/VND는 100단위)
 unit = CURRENCY_INFO[target_currency]["unit"]
 cur_to_usd = rates_dict.get(target_currency, 1.0)
 usd_to_krw = rates_dict.get("KRW", 1380.0)
 current_krw_rate = (usd_to_krw / cur_to_usd) * unit
 
-# -----------------------------------------------------------------------------
-# 2-1. 과거 시계열 데이터 생성 시뮬레이터 (일자별/분기별/연도별)
-# -----------------------------------------------------------------------------
 np.random.seed(hash(target_currency) % 500)
 
-# (1) 일자별 (최근 30영업일)
 today = datetime.now()
 dates = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(30, 0, -1)]
 daily_walk = np.cumsum(np.random.normal(0, current_krw_rate * 0.005, 30))
@@ -270,23 +263,18 @@ df_daily = pd.DataFrame({"Date": dates, "Rate": daily_rates})
 df_daily["Change_KRW"] = df_daily["Rate"].diff().fillna(0)
 df_daily["Change_Pct"] = df_daily["Rate"].pct_change().fillna(0) * 100
 
-# (2) 분기별 (최근 8개 분기)
 quarters = ["2023 Q3", "2023 Q4", "2024 Q1", "2024 Q2", "2024 Q3", "2024 Q4", "2025 Q1", "2025 Q2"]
 q_walk = np.array([0.94, 0.96, 0.98, 1.01, 1.03, 1.02, 1.04, 1.00])
 quarterly_rates = [round(current_krw_rate * factor, 2) for factor in q_walk]
 df_quarterly = pd.DataFrame({"Quarter": quarters, "Rate": quarterly_rates})
 df_quarterly["QoQ_Pct"] = df_quarterly["Rate"].pct_change().fillna(0) * 100
 
-# (3) 연도별 (최근 5개년)
 years_list = ["2021", "2022", "2023", "2024", "2025"]
 y_walk = np.array([0.88, 0.95, 0.97, 1.03, 1.00])
 yearly_rates = [round(current_krw_rate * factor, 2) for factor in y_walk]
 df_yearly = pd.DataFrame({"Year": years_list, "Rate": yearly_rates})
 df_yearly["YoY_Pct"] = df_yearly["Rate"].pct_change().fillna(0) * 100
 
-# -----------------------------------------------------------------------------
-# 2-2. [현재 기준 가치 평가] 백분위수 및 밴드 높낮이 평가 로직
-# -----------------------------------------------------------------------------
 hist_min = min(daily_rates + quarterly_rates + yearly_rates)
 hist_max = max(daily_rates + quarterly_rates + yearly_rates)
 hist_range = hist_max - hist_min if hist_max != hist_min else 1.0
@@ -313,9 +301,6 @@ else:
     status_color = "#3b82f6"
     status_comment = f"역사적 하단선에 근접했습니다. **수입 기업의 대량 소싱 기회**이며, 수출 기업은 채산성 악화에 유의해야 합니다."
 
-# -----------------------------------------------------------------------------
-# 2-3. 가치 평가 게이지 카드 렌더링
-# -----------------------------------------------------------------------------
 with st.container(border=True):
     col_g1, col_g2, col_g3 = st.columns([1.5, 1.5, 2.0])
     
@@ -333,14 +318,10 @@ with st.container(border=True):
         st.caption("현재 구간 행동 전략 가이드")
         st.info(status_comment)
 
-    # 시각적 게이지 바
     st.progress(int(max(0, min(100, position_pct))), text=f"역사적 최저 (₩{hist_min:,.1f})  ◀─────────── [현재 환율 위치: {position_pct:.1f}%] ───────────▶  역사적 최고 (₩{hist_max:,.1f})")
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# 2-4. [일자별 / 분기별 / 연도별] 시계열 증감률 콤보 그래프
-# -----------------------------------------------------------------------------
 time_mode = st.radio(
     "조회 단위 선택",
     options=["일자별 (최근 30일)", "분기별 (최근 8분기)", "연도별 (최근 5개년)"],
@@ -385,7 +366,7 @@ elif time_mode == "분기별 (최근 8분기)":
     fig_time.update_yaxes(title_text="증감률 (%)", secondary_y=True)
     st.plotly_chart(fig_time, use_container_width=True)
 
-else:  # 연도별
+else:
     fig_time = make_subplots(specs=[[{"secondary_y": True}]])
     fig_time.add_trace(
         go.Scatter(x=df_yearly["Year"], y=df_yearly["Rate"], mode="lines+markers+text", text=[f"{v:,.1f}" for v in df_yearly["Rate"]], textposition="top center", name="연간 환율 (KRW)", line=dict(color="#8b5cf6", width=3)),
@@ -426,7 +407,6 @@ KOREA_TRADE_STATS = {
 
 trade_info = KOREA_TRADE_STATS.get(target_currency, KOREA_TRADE_STATS["USD"])
 
-# CSV 다운로드 파일 구성
 export_df = pd.DataFrame([{
     "분석통화": target_currency,
     "국가명": trade_info["country"],
@@ -461,6 +441,8 @@ m_b3.metric("한국 대(對) 수입액", f"${trade_info['import_val']:,.0f}억")
 with st.container(border=True):
     p1, p2 = st.columns(2)
     with p1:
-        st.markdown(f"**수출 주력 품목 TOP 3:** {' '.join([f'<span class=\"badge-export\">✓ {x}</span>' for x in trade_info['top_exports']])}", unsafe_allow_html=True)
+        export_badges = " ".join([f'<span class="badge-export">✓ {x}</span>' for x in trade_info['top_exports']])
+        st.markdown(f"**수출 주력 품목 TOP 3:** {export_badges}", unsafe_allow_html=True)
     with p2:
-        st.markdown(f"**수입 주력 품목 TOP 3:** {' '.join([f'<span class=\"badge-import\">✓ {x}</span>' for x in trade_info['top_imports']])}", unsafe_allow_html=True)
+        import_badges = " ".join([f'<span class="badge-import">✓ {x}</span>' for x in trade_info['top_imports']])
+        st.markdown(f"**수입 주력 품목 TOP 3:** {import_badges}", unsafe_allow_html=True)
