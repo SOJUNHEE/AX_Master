@@ -4,9 +4,9 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# 1. 페이지 기본 설정
+# 1. 페이지 기본 설정 (와이드/모바일 자동 대응)
 st.set_page_config(
-    page_title="Trade MBTI | 나의 글로벌 무역 DNA 찾기",
+    page_title="Trade MBTI | 나의 무역 직무 DNA 찾기",
     page_icon="🚢",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -17,107 +17,136 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 title_font_path = os.path.join(BASE_DIR, "font_title.otf")
 body_font_path = os.path.join(BASE_DIR, "font_body.otf")
 
-with open(title_font_path, "rb") as f:
-    title_font_base64 = base64.b64encode(f.read()).decode()
+title_font_base64 = ""
+body_font_base64 = ""
 
-with open(body_font_path, "rb") as f:
-    body_font_base64 = base64.b64encode(f.read()).decode()
+if os.path.exists(title_font_path):
+    with open(title_font_path, "rb") as f:
+        title_font_base64 = base64.b64encode(f.read()).decode()
 
-# 3. 화려한 UI 스타일링 주입 (Glassmorphism & Neon Glow)
+if os.path.exists(body_font_path):
+    with open(body_font_path, "rb") as f:
+        body_font_base64 = base64.b64encode(f.read()).decode()
+
+# 3. PC/모바일 동시 대응 반응형 CSS 주입
 st.markdown(
     f"""
 <style>
-    /* 폰트 등록 */
+    /* 폰트 정의 */
     @font-face {{
         font-family: 'PretendardTitle';
         src: url(data:font/otf;charset=utf-8;base64,{title_font_base64}) format('opentype');
         font-weight: 700;
+        font-display: swap;
     }}
     @font-face {{
         font-family: 'PretendardBody';
         src: url(data:font/otf;charset=utf-8;base64,{body_font_base64}) format('opentype');
         font-weight: 500;
+        font-display: swap;
     }}
 
-    /* 전체 배경 은은한 오로라 그라디언트 */
+    /* 전체 앱 배경 및 반응형 컨테이너 */
     .stApp {{
         background: linear-gradient(135deg, #F0F4FF 0%, #E6EDF9 50%, #F5F3FF 100%);
-        font-family: 'PretendardBody', sans-serif !important;
+        font-family: 'PretendardBody', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+        word-break: keep-all;
+        overflow-wrap: break-word;
     }}
 
-    /* 본문 공통 폰트 */
+    /* PC / 태블릿 / 모바일 적응형 가로 폭 제어 */
+    .block-container {{
+        width: 100% !important;
+        max-width: 820px !important;
+        padding-top: 2rem !important;
+        padding-bottom: 4rem !important;
+        padding-left: clamp(1rem, 3vw, 2.5rem) !important;
+        padding-right: clamp(1rem, 3vw, 2.5rem) !important;
+    }}
+
+    /* 기본 텍스트 폰트 적용 */
     html, body, [class*="css"], p, span, label, div, .stMarkdown, .stText {{
-        font-family: 'PretendardBody', sans-serif !important;
+        font-family: 'PretendardBody', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }}
 
-    /* 타이틀 및 강조 영역 */
     h1, h2, h3, .hero-title, .result-role, .stButton>button {{
-        font-family: 'PretendardTitle', sans-serif !important;
+        font-family: 'PretendardTitle', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }}
-    
+
+    /* 히어로 헤더 */
     .hero-badge {{
         display: inline-block;
         background: linear-gradient(90deg, #3B82F6, #8B5CF6);
         color: white;
         padding: 6px 16px;
         border-radius: 20px;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         font-weight: 700;
         margin-bottom: 12px;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
     }}
-    
+
     .hero-title {{
-        font-size: 2.35rem;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
         font-weight: 900;
+        line-height: 1.25;
         background: linear-gradient(90deg, #1E3A8A, #3B82F6, #6366F1);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
         margin-bottom: 8px;
     }}
-    
+
     .hero-sub {{
-        font-size: 1.05rem;
+        font-size: clamp(0.95rem, 2vw, 1.15rem);
         color: #475569;
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 24px;
+        line-height: 1.5;
     }}
 
-    /* 인트로 안내 카드 (Glassmorphism) */
-    .intro-box {{
-        background: rgba(255, 255, 255, 0.92);
+    /* 카드 스타일 (PC/모바일 하이브리드) */
+    .intro-box, .slide-card {{
+        background: rgba(255, 255, 255, 0.94);
+        -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
         border: 1.5px solid rgba(226, 232, 240, 0.9);
         border-radius: 20px;
-        padding: 26px 28px;
-        margin-bottom: 24px;
-        box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.05);
+        padding: clamp(18px, 3.5vw, 32px);
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+
+    @media (hover: hover) {{
+        .slide-card:hover {{
+            box-shadow: 0 16px 36px -6px rgba(59, 130, 246, 0.08);
+            transform: translateY(-2px);
+        }}
     }}
 
     .intro-highlight {{
         color: #1E3A8A;
         font-weight: 800;
-        font-size: 1.25rem;
+        font-size: clamp(1.1rem, 2.2vw, 1.35rem);
         margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
     }}
 
     .intro-desc {{
         color: #334155;
-        font-size: 1rem;
+        font-size: clamp(0.95rem, 1.8vw, 1.05rem);
         line-height: 1.7;
         margin-bottom: 18px;
     }}
 
+    /* 반응형 사양 그리드 (PC 3열 / 모바일 3열 또는 1열 축소) */
     .spec-grid {{
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-top: 15px;
-        padding-top: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+        padding-top: 16px;
         border-top: 1px dashed #CBD5E1;
         text-align: center;
     }}
@@ -130,111 +159,126 @@ st.markdown(
     }}
 
     .spec-title {{
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #64748B;
         font-weight: 600;
     }}
 
     .spec-val {{
-        font-size: 1.05rem;
+        font-size: clamp(0.95rem, 1.8vw, 1.15rem);
         color: #2563EB;
         font-weight: 800;
-        margin-top: 4px;
+        margin-top: 2px;
     }}
 
-    /* 슬라이드형 질문 카드 */
-    .slide-card {{
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(12px);
-        border: 1.5px solid rgba(226, 232, 240, 0.9);
-        border-radius: 20px;
-        padding: 30px 28px;
-        margin-bottom: 20px;
-        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05);
-        animation: fadeIn 0.3s ease-in-out;
-    }}
-
-    @keyframes fadeIn {{
-        from {{ opacity: 0; transform: translateY(8px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
-    }}
-    
+    /* 문항 배지 및 질문 본문 */
     .q-badge {{
         color: #3B82F6;
         font-weight: 900;
-        font-size: 1.2rem;
-        margin-bottom: 8px;
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        margin-bottom: 6px;
     }}
-    
+
     .q-text {{
         color: #0F172A;
         font-weight: 700;
-        font-size: 1.22rem;
-        line-height: 1.5;
+        font-size: clamp(1.05rem, 2.2vw, 1.28rem);
+        line-height: 1.55;
     }}
 
-    /* 라디오 버튼 선택지 카드화 */
-    div[role="radiogroup"] > label {{
-        background: white;
-        border: 1.5px solid #E2E8F0;
-        padding: 14px 20px;
-        border-radius: 14px;
-        margin-bottom: 10px;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    /* 선택지 라디오 버튼 커스텀 (터치 영역 확보) */
+    div[role="radiogroup"] {{
+        gap: 10px !important;
     }}
-    div[role="radiogroup"] > label:hover {{
-        border-color: #93C5FD;
-        background-color: #F8FAFC;
-        transform: translateX(4px);
+
+    div[role="radiogroup"] > label {{
+        background: #FFFFFF !important;
+        border: 1.5px solid #E2E8F0 !important;
+        padding: clamp(12px, 2.5vw, 18px) clamp(14px, 3vw, 22px) !important;
+        border-radius: 14px !important;
+        margin-bottom: 8px !important;
+        width: 100% !important;
+        min-height: 52px !important;
+        display: flex !important;
+        align-items: center !important;
+        -webkit-tap-highlight-color: transparent !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        transition: all 0.2s ease !important;
+    }}
+
+    @media (hover: hover) {{
+        div[role="radiogroup"] > label:hover {{
+            border-color: #93C5FD !important;
+            background-color: #F8FAFC !important;
+            transform: translateX(4px);
+        }}
+    }}
+
+    div[role="radiogroup"] > label:active {{
+        background-color: #EFF6FF !important;
+        border-color: #3B82F6 !important;
+    }}
+
+    div[role="radiogroup"] > label p {{
+        font-size: clamp(0.95rem, 1.8vw, 1.05rem) !important;
+        line-height: 1.5 !important;
+        color: #1E293B !important;
     }}
 
     /* 버튼 스타일 */
     .stButton > button {{
         background: linear-gradient(90deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%) !important;
         color: white !important;
-        font-size: 1.1rem !important;
+        font-size: clamp(1rem, 2vw, 1.15rem) !important;
         font-weight: 700 !important;
-        padding: 14px 28px !important;
+        min-height: 50px !important;
         border-radius: 14px !important;
         border: none !important;
-        box-shadow: 0 8px 18px -2px rgba(79, 70, 229, 0.35) !important;
-        transition: all 0.2s ease !important;
+        box-shadow: 0 8px 20px -3px rgba(79, 70, 229, 0.35) !important;
+        -webkit-tap-highlight-color: transparent !important;
+        transition: all 0.25s ease !important;
     }}
-    .stButton > button:hover {{
-        transform: scale(1.02) !important;
-        box-shadow: 0 12px 22px -2px rgba(79, 70, 229, 0.55) !important;
+
+    @media (hover: hover) {{
+        .stButton > button:hover {{
+            transform: scale(1.015) !important;
+            box-shadow: 0 12px 24px -3px rgba(79, 70, 229, 0.5) !important;
+        }}
     }}
 
     /* 결과 배너 */
     .result-banner {{
         background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E3A8A 100%);
         border-radius: 20px;
-        padding: 38px 26px;
+        padding: clamp(26px, 5vw, 42px) clamp(18px, 4vw, 32px);
         text-align: center;
         color: white;
-        box-shadow: 0 20px 40px -10px rgba(30, 27, 75, 0.5);
         margin-bottom: 24px;
+        box-shadow: 0 16px 35px -8px rgba(30, 27, 75, 0.45);
     }}
+
     .result-subtext {{
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         letter-spacing: 2px;
         text-transform: uppercase;
         color: #93C5FD;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }}
+
     .result-role {{
-        font-size: 2.6rem;
+        font-size: clamp(1.9rem, 5vw, 2.8rem);
         font-weight: 900;
         background: linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin: 10px 0;
+        margin: 8px 0;
+        line-height: 1.25;
     }}
+
     .result-tagline {{
-        font-size: 1.15rem;
+        font-size: clamp(0.98rem, 2vw, 1.18rem);
         color: #E2E8F0;
-        font-weight: 400;
+        line-height: 1.5;
     }}
 </style>
 """,
@@ -497,7 +541,7 @@ QUESTIONS = [
     },
 ]
 
-# 6. 세션 상태 관리 (홈 화면 / 슬라이드 진행 / 결과 화면)
+# 6. 세션 상태 관리 (인트로/슬라이드 단계/결과)
 if "started" not in st.session_state:
     st.session_state.started = False
 if "current_step" not in st.session_state:
@@ -511,7 +555,7 @@ total_questions = len(QUESTIONS)
 
 # 7. 화면 렌더링 분기
 
-# 7-1. [홈/인트로 화면] 테스트 목적과 이유 설명
+# 7-1. [홈 / 인트로 화면]
 if not st.session_state.started:
     st.markdown(
         '<div style="text-align: center;"><span class="hero-badge">🌐 GLOBAL CAREER SOLUTION</span></div>',
@@ -526,7 +570,7 @@ if not st.session_state.started:
         unsafe_allow_html=True,
     )
 
-    # 기획 의도 및 목적 설명 박스
+    # 기획 의도 설명 박스 (PC/모바일 공통 반응형)
     st.markdown(
         """
         <div class="intro-box">
@@ -544,7 +588,7 @@ if not st.session_state.started:
                 </div>
                 <div class="spec-item">
                     <div class="spec-title">진단 문항</div>
-                    <div class="spec-val">20개 시나리오</div>
+                    <div class="spec-val">20개 문항</div>
                 </div>
                 <div class="spec-item">
                     <div class="spec-title">제공 혜택</div>
@@ -592,17 +636,17 @@ elif not st.session_state.submitted:
         labels,
         index=default_index,
         key=f"radio_step_{step}",
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
 
     st.write("")
 
-    # 이전 / 다음(또는 결과보기) 버튼 제어
-    col1, col2 = st.columns([1, 1])
+    # 이전 / 다음 버튼 (모바일 2열 균등 배치)
+    col1, col2 = st.columns(2)
 
     with col1:
         if step > 0:
-            if st.button("⬅️ 이전 문항", use_container_width=True):
+            if st.button("⬅️ 이전", use_container_width=True):
                 if selected_option is not None:
                     st.session_state.user_answers[step] = selected_option
                 st.session_state.current_step -= 1
@@ -610,7 +654,7 @@ elif not st.session_state.submitted:
 
     with col2:
         if step < total_questions - 1:
-            if st.button("다음 문항 ➡️", use_container_width=True):
+            if st.button("다음 ➡️", use_container_width=True):
                 if selected_option is None:
                     st.warning("⚠️ 답변을 선택해 주세요!")
                 else:
@@ -618,7 +662,7 @@ elif not st.session_state.submitted:
                     st.session_state.current_step += 1
                     st.rerun()
         else:
-            if st.button("✨ 결과 분석하기", use_container_width=True):
+            if st.button("✨ 결과 보기", use_container_width=True):
                 if selected_option is None:
                     st.warning("⚠️ 마지막 문항의 답변을 선택해 주세요!")
                 else:
@@ -659,7 +703,7 @@ else:
     st.markdown(" ".join([f"`{kw}`" for kw in job_info["keywords"]]))
     st.write("")
 
-    tab1, tab2 = st.tabs(["📋 직무 상세 리포트", "📊 6대 직무 적합도 비교"])
+    tab1, tab2 = st.tabs(["📋 직무 상세 리포트", "📊 직무 적합도 차트"])
 
     with tab1:
         st.subheader("💡 주요 업무")
@@ -683,18 +727,19 @@ else:
         )
         fig.update_layout(
             polar=dict(
-                radialaxis=dict(visible=True, range=[0, max(scores.values()) + 1])
+                radialaxis=dict(visible=True, range=[0, max(scores.values()) + 1]),
+                angularaxis=dict(tickfont=dict(size=11))
             ),
             showlegend=False,
-            margin=dict(l=40, r=40, t=30, b=30),
+            margin=dict(l=30, r=30, t=30, b=30),
         )
         st.plotly_chart(fig, use_container_width=True)
 
         sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         df_rank = pd.DataFrame(
-            sorted_scores, columns=["직무명", "매칭 문항 수(점수)"]
+            sorted_scores, columns=["직무명", "매칭 점수"]
         )
-        st.dataframe(df_rank, use_container_width=True)
+        st.dataframe(df_rank, use_container_width=True, hide_index=True)
 
     st.write("")
     if st.button("🔄 다시 테스트하기", use_container_width=True):
