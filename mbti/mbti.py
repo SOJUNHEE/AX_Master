@@ -107,7 +107,18 @@ st.markdown(
     }}
 
     /* 카드 스타일 (PC/모바일 하이브리드) */
-    .intro-box, .slide-card {{
+    .intro-box {
+        background: rgba(255, 255, 255, 0.96) !important;
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(226, 232, 240, 0.9);
+        border-radius: 20px;
+        padding: 32px 28px 24px 28px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .slide-card {
         background: rgba(255, 255, 255, 0.94);
         -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
@@ -117,39 +128,39 @@ st.markdown(
         margin-bottom: 20px;
         box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }}
+    }
 
-    @media (hover: hover) {{
-        .slide-card:hover {{
+    @media (hover: hover) {
+        .slide-card:hover {
             box-shadow: 0 16px 36px -6px rgba(59, 130, 246, 0.08);
             transform: translateY(-2px);
-        }}
-    }}
+        }
+    }
 
-    .intro-highlight {{
+    .intro-highlight {
         color: #1E3A8A;
         font-weight: 800;
-        font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+        font-size: 1.2rem;
         margin-bottom: 12px;
-    }}
+    }
 
-    .intro-desc {{
+    .intro-desc {
         color: #334155;
-        font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+        font-size: 1rem;
         line-height: 1.7;
         margin-bottom: 18px;
-    }}
+    }
 
-    /* 반응형 사양 그리드 (PC 3열 / 모바일 3열 또는 1열 축소) */
-    .spec-grid {{
+    /* 반응형 사양 그리드 */
+    .spec-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 10px;
-        margin-top: 16px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 18px;
         padding-top: 16px;
         border-top: 1px dashed #CBD5E1;
         text-align: center;
-    }}
+    }
 
     .spec-item {{
         background: #F8FAFC;
@@ -600,6 +611,7 @@ if not st.session_state.started:
         unsafe_allow_html=True,
     )
 
+    st.write("")  # 박스와 버튼 사이 여백 분리
     if st.button("🚀 나의 무역 DNA 진단 시작하기", use_container_width=True):
         st.session_state.started = True
         st.rerun()
