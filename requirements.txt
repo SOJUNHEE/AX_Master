@@ -1,8 +1,7 @@
-pandas
 streamlit
+requests
+python-dotenv
+pandas
 numpy
 matplotlib
-requests
-base64
-plotly.express
-python-dotenv
+plotly
