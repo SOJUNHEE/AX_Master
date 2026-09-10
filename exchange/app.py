@@ -34,12 +34,15 @@ def get_secret_key(key_name: str):
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
 
 # -----------------------------------------------------------------------------
-# 2. 커스텀 폰트 로드 및 시인성 극대화 CSS
+# 2. 폰트 깨짐 방지 및 모바일 완벽 반응형 CSS
 # -----------------------------------------------------------------------------
 def get_font_base64(font_path: Path):
     if font_path.exists():
-        with open(font_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
+        try:
+            with open(font_path, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+        except Exception:
+            return None
     return None
 
 font_title_path = CURRENT_DIR / "font_title.otf"
@@ -47,30 +50,43 @@ font_body_path = CURRENT_DIR / "font_body.otf"
 font_title_b64 = get_font_base64(font_title_path)
 font_body_b64 = get_font_base64(font_body_path)
 
-custom_font_css = "<style>\n"
-if font_title_b64:
-    custom_font_css += f"""
-    @font-face {{
-        font-family: 'CustomTitleFont';
-        src: url('data:font/otf;base64,{font_title_b64}') format('opentype');
-    }}
-    """
-if font_body_b64:
-    custom_font_css += f"""
-    @font-face {{
-        font-family: 'CustomBodyFont';
-        src: url('data:font/otf;base64,{font_body_b64}') format('opentype');
-    }}
-    """
+font_face_title = f"""
+@font-face {{
+    font-family: 'CustomTitleFont';
+    src: url('data:font/otf;base64,{font_title_b64}') format('opentype');
+    font-display: swap;
+}}
+""" if font_title_b64 else ""
 
-custom_font_css += f"""
-    h1, h2, h3, h4, .stTitle, div[data-testid="stMetricLabel"] {{
-        font-family: {'CustomTitleFont, ' if font_title_b64 else ''} 'Pretendard', -apple-system, sans-serif !important;
-        word-break: keep-all !important;
+font_face_body = f"""
+@font-face {{
+    font-family: 'CustomBodyFont';
+    src: url('data:font/otf;base64,{font_body_b64}') format('opentype');
+    font-display: swap;
+}}
+""" if font_body_b64 else ""
+
+custom_font_css = f"""
+<style>
+    {font_face_title}
+    {font_face_body}
+
+    :root {{
+        --font-title: {'CustomTitleFont, ' if font_title_b64 else ''} 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        --font-body: {'CustomBodyFont, ' if font_body_b64 else ''} 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
     }}
+
     html, body, [class*="css"], .stMarkdown, .stSelectbox, .stNumberInput, p, span, div, table {{
-        font-family: {'CustomBodyFont, ' if font_body_b64 else ''} 'Pretendard', -apple-system, sans-serif;
+        font-family: var(--font-body) !important;
         word-break: keep-all !important;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }}
+
+    h1, h2, h3, h4, .stTitle, div[data-testid="stMetricLabel"] {{
+        font-family: var(--font-title) !important;
+        word-break: keep-all !important;
+        white-space: normal !important;
     }}
 
     @media (min-width: 769px) {{
@@ -80,39 +96,58 @@ custom_font_css += f"""
         .block-container {{ max-width: 100% !important; padding: 1rem 0.8rem !important; }}
     }}
 
-    /* 🌟 심플 환율 계산기 카드 그리드 스타일 (시인성 극대화) */
+    /* 🌟 첨부 이미지 스타일의 깔끔한 화이트 통화 카드 그리드 */
+    .card-grid-container {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }}
+
     .simple-calc-card {{
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 16px 20px;
+        padding: 18px 20px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-        margin-bottom: 16px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
+        transition: all 0.2s ease;
     }}
     .simple-calc-card:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
         border-color: #38bdf8;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
     }}
-    .card-currency-title {{
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #1e293b;
+
+    .card-currency-header {{
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 4px;
+    }}
+    .card-currency-code {{
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+    }}
+    .card-currency-name {{
+        font-size: 0.82rem;
+        color: #64748b;
+        margin-bottom: 12px;
     }}
     .card-converted-value {{
-        font-size: 1.55rem;
-        font-weight: 800;
-        color: #0284c7;
-        margin: 6px 0;
+        font-size: 1.7rem !important;
+        font-weight: 800 !important;
+        color: #0284c7 !important;
+        margin: 4px 0 8px 0;
+        word-break: break-all !important;
     }}
     .card-rate-info {{
         font-size: 0.82rem;
-        color: #64748b;
+        color: #475569;
+        font-weight: 600;
     }}
+
     .badge-up {{
         background-color: #d1fae5;
         color: #065f46;
@@ -120,6 +155,7 @@ custom_font_css += f"""
         border-radius: 6px;
         font-size: 0.78rem;
         font-weight: 700;
+        white-space: nowrap;
     }}
     .badge-down {{
         background-color: #fee2e2;
@@ -128,41 +164,57 @@ custom_font_css += f"""
         border-radius: 6px;
         font-size: 0.78rem;
         font-weight: 700;
+        white-space: nowrap;
     }}
 
-    /* 전광판 스타일 */
+    /* 전광판 및 기타 디자인 */
     .hero-ticker-box {{
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border: 2px solid #38bdf8;
         border-radius: 14px;
-        padding: 20px 24px;
+        padding: clamp(16px, 3vw, 24px);
         color: #ffffff;
         margin-bottom: 20px;
+        box-sizing: border-box;
     }}
-    .hero-rate-value {{ font-size: 2.2rem !important; font-weight: 800 !important; color: #38bdf8 !important; }}
-    .hero-sub-rate {{ font-size: 1.4rem !important; font-weight: 700 !important; color: #f1f5f9 !important; }}
-    .hero-badge {{ display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }}
+    .hero-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        align-items: center;
+    }}
+    .hero-rate-value {{
+        font-size: clamp(1.8rem, 4vw, 2.6rem) !important;
+        font-weight: 800 !important;
+        color: #38bdf8 !important;
+        margin: 4px 0;
+    }}
+    .hero-sub-rate {{
+        font-size: clamp(1.2rem, 2.5vw, 1.6rem) !important;
+        font-weight: 700 !important;
+        color: #f1f5f9 !important;
+        margin: 4px 0;
+    }}
+    .hero-badge {{
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }}
     .badge-overvalued {{ background-color: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; }}
     .badge-fair {{ background-color: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid #10b981; }}
     .badge-undervalued {{ background-color: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6; }}
 
-    .badge-export {{ background-color: #ecfdf5; color: #065f46; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; border: 1px solid #a7f3d0; margin: 2px; display: inline-block; }}
-    .badge-import {{ background-color: #eff6ff; color: #1e40af; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; border: 1px solid #bfdbfe; margin: 2px; display: inline-block; }}
-    .report-card {{ background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 10px; }}
-    
-    /* 신규 부가 카드 스타일 */
-    .credit-card {{
-        background: #f8fafc;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 14px 18px;
-        margin-bottom: 10px;
-    }}
+    .badge-export {{ background-color: #ecfdf5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; border: 1px solid #a7f3d0; margin: 3px; display: inline-block; }}
+    .badge-import {{ background-color: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; border: 1px solid #bfdbfe; margin: 3px; display: inline-block; }}
+    .report-card {{ background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 12px; }}
+    .credit-card {{ background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; }}
 </style>
 """
 
 st.set_page_config(
-    page_title="글로벌 외환 인텔리전스 & 전세계 단순 환율 계산기",
+    page_title="글로벌 외환 인텔리전스 & 전세계 환율 계산기",
     page_icon="💱",
     layout="wide",
 )
@@ -196,7 +248,6 @@ fallback_rates = {
 rates_dict = live_rates if (live_rates and isinstance(live_rates, dict)) else fallback_rates
 
 CURRENCY_INFO = {
-    "KRW": {"name": "대한민국 원화", "flag": "🇰🇷", "symbol": "₩", "unit": 1},
     "USD": {"name": "미국 달러화", "flag": "🇺🇸", "symbol": "$", "unit": 1},
     "JPY": {"name": "일본 엔화 (100엔)", "flag": "🇯🇵", "symbol": "¥", "unit": 100},
     "EUR": {"name": "유로존 유로", "flag": "🇪🇺", "symbol": "€", "unit": 1},
@@ -208,80 +259,124 @@ CURRENCY_INFO = {
     "SGD": {"name": "싱가포르 달러화", "flag": "🇸🇬", "symbol": "S$", "unit": 1},
 }
 
+# -----------------------------------------------------------------------------
+# 🌟 [별도 팝업 계산기 함수 정의 (st.dialog)]
+# -----------------------------------------------------------------------------
+@st.dialog("🧮 개별 통화 상세 계산기")
+def open_currency_calculator(cur_code, info, rates_map):
+    st.markdown(f"### {info['flag']} **{cur_code} ({info['name']})** 전용 환산 스튜디오")
+    st.caption("원화(KRW)와 해당 통화 간의 양방향 정밀 환전을 수행합니다.")
+    
+    krw_per_usd = rates_map.get("KRW", 1380.0)
+    cur_per_usd = rates_map.get(cur_code, 1.0)
+    # 1 외화 당 원화 환율
+    rate_krw_per_cur = (krw_per_usd / cur_per_usd) * info["unit"]
+    
+    tab_forward, tab_reverse = st.tabs(["원화 ➔ 외화 변환", f"{cur_code} ➔ 원화 변환"])
+    
+    with tab_forward:
+        amt_krw = st.number_input("변환할 원화 금액 (KRW)", min_value=0.0, value=100000.0, step=10000.0, key=f"calc_krw_{cur_code}")
+        res_cur = amt_krw / rate_krw_per_cur if rate_krw_per_cur > 0 else 0
+        st.markdown(f"""
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px; text-align: center; margin-top: 10px;">
+            <div style="font-size: 0.9rem; color: #0369a1; font-weight: 600;">환산 결과</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #0284c7; margin: 4px 0;">{info['symbol']} {res_cur:,.2f}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">적용 환율: 1 {cur_code} ({info['unit']}단위) = ₩{rate_krw_per_cur:,.2f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with tab_reverse:
+        amt_cur = st.number_input(f"변환할 {cur_code} 금액", min_value=0.0, value=100.0 if info['unit']==1 else 10000.0, step=10.0, key=f"calc_cur_{cur_code}")
+        res_krw = amt_cur * rate_krw_per_cur
+        st.markdown(f"""
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; text-align: center; margin-top: 10px;">
+            <div style="font-size: 0.9rem; color: #166534; font-weight: 600;">환산 결과</div>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #16a34a; margin: 4px 0;">₩ {res_krw:,.2f}</div>
+            <div style="font-size: 0.8rem; color: #64748b;">적용 환율: 1 {cur_code} ({info['unit']}단위) = ₩{rate_krw_per_cur:,.2f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    if st.button("닫기", use_container_width=True):
+        st.rerun()
+
 # =============================================================================
-# [SECTION 1] 💱 [기존 유지] 전세계 단순 환율 계산기 & 등락폭 대시보드
+# [SECTION 1] 💱 전세계 주요 통화 카드형 심플 계산기 & 클릭형 모달 연동
 # =============================================================================
-st.title("💱 전세계 주요 통화 실시간 심플 계산기")
-st.caption("기준 통화와 금액을 입력하면, 전 세계 주요 교역국의 환산 금액과 24시간 등락폭(초록색/빨간색)이 직관적인 카드로 한눈에 표시됩니다.")
+st.title("💱 글로벌 외환 실시간 카드 계산기")
+st.caption("기준 원화(1 KRW 또는 1,000,000 KRW) 기준 각국 통화 환산 가치와 24시간 등락폭을 확인하고, 카드를 클릭하여 개별 계산기를 띄우세요.")
 
 with st.container(border=True):
-    sc1, sc2 = st.columns([1.5, 3.5], gap="large")
-    with sc1:
-        simple_base = st.selectbox(
-            "기준 통화 (Base)",
-            options=list(CURRENCY_INFO.keys()),
-            index=0,  # KRW
-            format_func=lambda x: f"{CURRENCY_INFO[x]['flag']} {x} ({CURRENCY_INFO[x]['name']})"
-        )
-    with sc2:
-        def_val = 1000000.0 if simple_base in ["KRW", "VND"] else 1000.0
-        simple_amount = st.number_input(
-            "변환할 금액 입력",
+    col_amt, col_info = st.columns([2.5, 2.5], gap="medium")
+    with col_amt:
+        base_krw_amount = st.number_input(
+            "기준 환산 원금 (KRW)",
             min_value=0.0,
-            value=def_val,
-            step=10000.0 if simple_base == "KRW" else 100.0,
+            value=1000000.0,
+            step=100000.0,
             format="%.2f"
         )
+    with col_info:
+        st.info(f"💡 현재 입력하신 **₩{base_krw_amount:,.0f} KRW**가 전 세계 주요 9개 교역국 통화로 각각 얼마인지 실시간 산출됩니다.")
 
-# 등락폭 시뮬레이션 고정 생성
+# 환율 계산 준비
 np.random.seed(123)
-base_u_rate = rates_dict.get(simple_base, 1.0)
+krw_rate_base = rates_dict.get("KRW", 1380.0)
 
-st.markdown(f"#### 📊 **{simple_amount:,.2f} {simple_base}** 기준 전세계 주요국 실시간 환산 & 등락 현황")
+st.markdown(f"#### 📊 주요 교역국 실시간 환산 현황 및 개별 계산기")
 
-grid_cols = st.columns(4, gap="medium")
+# 카드 그리드 배치
+grid_cols = st.columns(3, gap="medium")
 card_idx = 0
 
 for cur_code, info in CURRENCY_INFO.items():
-    if cur_code == simple_base:
-        continue
-        
-    cur_u_rate = rates_dict.get(cur_code, 1.0)
-    rate_val = cur_u_rate / base_u_rate
-    converted_val = simple_amount * rate_val
+    cur_usd_rate = rates_dict.get(cur_code, 1.0)
+    # 1 KRW 당 대상 통화 비율 = (cur_usd_rate / krw_rate_base) * info["unit"]
+    rate_per_krw = (cur_usd_rate / krw_rate_base) * info["unit"]
+    converted_val = base_krw_amount * rate_per_krw
     
-    chg = float(np.random.normal(0.02, 0.55))
+    # 1 외화 당 원화 환율 (역산)
+    reverse_rate = (krw_rate_base / cur_usd_rate) / info["unit"]
+    
+    # 등락률 시뮬레이션 (-1.2% ~ +1.2%)
+    chg = float(np.random.normal(0.03, 0.45))
     chg_symbol = "▲" if chg >= 0 else "▼"
     badge_cls = "badge-up" if chg >= 0 else "badge-down"
     chg_str = f"{chg_symbol} {abs(chg):.2f}%"
     
-    target_col = grid_cols[card_idx % 4]
+    target_col = grid_cols[card_idx % 3]
     with target_col:
         formatted_val = f"{info['symbol']} {converted_val:,.0f}" if info['unit'] > 1 or converted_val > 10000 else f"{info['symbol']} {converted_val:,.2f}"
+        
+        # HTML 카드 렌더링
         st.markdown(f"""
         <div class="simple-calc-card">
-            <div class="card-currency-title">
-                <span>{info['flag']} {cur_code}</span>
+            <div class="card-currency-header">
+                <span class="card-currency-code">{info['flag']} {cur_code}</span>
                 <span class="{badge_cls}">{chg_str}</span>
             </div>
-            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">{info['name']}</div>
+            <div class="card-currency-name">{info['name']}</div>
             <div class="card-converted-value">{formatted_val}</div>
-            <div class="card-rate-info">1 {simple_base} = {rate_val:,.4f} {cur_code}</div>
+            <div class="card-rate-info">1 KRW = {rate_per_krw:,.4f} {cur_code} (1 {cur_code}=₩{reverse_rate:,.1f})</div>
         </div>
         """, unsafe_allow_html=True)
+        
+        # 🌟 클릭 시 별도 팝업 계산기(Dialog)를 띄우는 버튼
+        if st.button(f"🧮 {cur_code} 개별 계산기 열기", key=f"btn_calc_{cur_code}", use_container_width=True):
+            open_currency_calculator(cur_code, info, rates_dict)
+            
     card_idx += 1
 
 st.divider()
 
 # =============================================================================
-# [SECTION 2] 🌟 [기존 유지] 환율 전광판 & 밸류에이션 진단
+# [SECTION 2] 🌟 환율 전광판 & 밸류에이션 진단 (기존 유지)
 # =============================================================================
 st.subheader("📈 외환 밸류에이션 진단 (Valuation Matrix)")
 st.caption("시계열 데이터 분포를 기준으로 현재 환율의 역사적 백분위 위치(Percentile)와 고·저평가 상태를 진단합니다.")
 
 target_currency = st.selectbox(
     "분석 대상 교역 통화 선택 (Quote Currency)",
-    options=[c for c in CURRENCY_INFO.keys() if c != "KRW"],
+    options=list(CURRENCY_INFO.keys()),
     index=0,
     format_func=lambda x: f"{CURRENCY_INFO[x]['flag']} {x} ({CURRENCY_INFO[x]['name']})"
 )
@@ -349,20 +444,22 @@ st.markdown(f"""
             <span class="hero-badge {status_badge_class}">{status_label}</span>
         </div>
     </div>
-    <div style="display: grid; grid-template-columns: 1.4fr 1.1fr 2.0fr; gap: 25px; align-items: center;">
+    <div class="hero-grid">
         <div>
-            <div style="font-size: 0.95rem; color: #94a3b8; font-weight: 600;">🇰🇷 원화 환율 (1 {target_currency}{f'[{unit}]' if unit > 1 else ''} 당)</div>
+            <div style="font-size: 0.92rem; color: #94a3b8; font-weight: 600;">🇰🇷 원화 환율 (1 {target_currency}{f'[{unit}]' if unit > 1 else ''} 당)</div>
             <div class="hero-rate-value">₩{current_krw_rate:,.2f}</div>
-            <div style="font-size: 0.88rem; color: #38bdf8;">역사적 밴드 상위 {position_pct:.1f}% 지점</div>
+            <div style="font-size: 0.85rem; color: #38bdf8;">역사적 밴드 상위 {position_pct:.1f}% 지점</div>
         </div>
-        <div style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 20px;">
-            <div style="font-size: 0.95rem; color: #94a3b8; font-weight: 600;">🇺🇸 기축통화 대비 (1 USD 당)</div>
+        <div>
+            <div style="font-size: 0.92rem; color: #94a3b8; font-weight: 600;">🇺🇸 기축통화 대비 (1 USD 당)</div>
             <div class="hero-sub-rate">{cur_to_usd:,.4f} {target_currency}</div>
-            <div style="font-size: 0.85rem; color: #cbd5e1;">(기준 USD/KRW: ₩{usd_to_krw:,.1f})</div>
+            <div style="font-size: 0.82rem; color: #cbd5e1;">(기준 USD/KRW: ₩{usd_to_krw:,.1f})</div>
         </div>
-        <div style="background: rgba(255,255,255,0.06); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="font-size: 0.9rem; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">📌 밸류에이션 총평</div>
-            <div style="font-size: 0.88rem; color: #e2e8f0; line-height: 1.5;">{status_comment}</div>
+        <div>
+            <div style="background: rgba(255,255,255,0.06); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">📌 밸류에이션 총평</div>
+                <div style="font-size: 0.82rem; color: #e2e8f0; line-height: 1.5;">{status_comment}</div>
+            </div>
         </div>
     </div>
 </div>
@@ -390,7 +487,7 @@ if "30영업일" in time_mode:
     )
     fig_time.update_layout(
         title=f"{target_currency}/KRW 최근 30영업일간 일별 환율 및 등락률(%)",
-        height=340, margin=dict(l=10, r=10, t=40, b=20),
+        height=320, margin=dict(l=10, r=10, t=40, b=20),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     fig_time.update_yaxes(title_text="환율 (KRW)", secondary_y=False)
@@ -409,7 +506,7 @@ elif "8분기" in time_mode:
     )
     fig_time.update_layout(
         title=f"{target_currency}/KRW 최근 8개 분기별 환율 및 QoQ 증감률",
-        height=340, margin=dict(l=10, r=10, t=40, b=20),
+        height=320, margin=dict(l=10, r=10, t=40, b=20),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     fig_time.update_yaxes(title_text="환율 (KRW)", secondary_y=False)
@@ -428,7 +525,7 @@ else:
     )
     fig_time.update_layout(
         title=f"{target_currency}/KRW 최근 5개년 연간 환율 및 YoY 증감률",
-        height=340, margin=dict(l=10, r=10, t=40, b=20),
+        height=320, margin=dict(l=10, r=10, t=40, b=20),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     fig_time.update_yaxes(title_text="환율 (KRW)", secondary_y=False)
@@ -438,7 +535,7 @@ else:
 st.divider()
 
 # =============================================================================
-# [SECTION 3] 📑 對韓 대외 경상 교역 팩트시트 (기존 유지)
+# [SECTION 3] 📑 對韓 대외 경상 교역 팩트시트
 # =============================================================================
 st.subheader("📑 對韓 대외 경상 교역 팩트시트")
 
@@ -526,12 +623,11 @@ with tab_tactics_im:
 st.divider()
 
 # =============================================================================
-# [SECTION 4] 🌟 [신규 추가: 부가 분석 자료] 국가 대외 신인도 & 글로벌 벤치마크
+# [SECTION 4] 🌟 국가 대외 신인도 & 글로벌 벤치마크
 # =============================================================================
 st.subheader("🌐 [심층 부가 분석] 국가 대외 신인도 & 거시 건전성 리포트")
 st.caption("환율 계산 외에 추가 검토가 필요한 국가별 신용등급(S&P, Moody's), CDS 프리미엄, 외채 건전성 및 실제 은행 매매 스프레드 가이드를 제공합니다.")
 
-# 국가별 신용도 및 거시건전성 부가 데이터셋
 SOVEREIGN_RISK_DATA = {
     "USD": {"sp_rating": "AA+", "moodys": "Aaa", "cds_bps": "34 bp (최상위)", "short_debt_ratio": "24.5%", "fx_reserves": "$3,200억", "risk_level": "🟢 최우수"},
     "CNY": {"sp_rating": "A+", "moodys": "A1", "cds_bps": "58 bp (우수)", "short_debt_ratio": "42.0%", "fx_reserves": "$32,500억", "risk_level": "🟡 중립 안정"},
@@ -572,7 +668,6 @@ with tab_sub2:
     st.markdown("#### 💳 **은행 고시 환율 및 실거래 스프레드 호가 분해**")
     st.caption("실제 시중은행(하나/신한은행 등)에서 외환 거래 시 적용되는 거래 유형별 추정 환율입니다.")
     
-    # 스프레드 분해 계산 (기준가 대비 전신환 1%, 현찰 1.75%)
     spread_wire = current_krw_rate * 0.0098
     spread_cash = current_krw_rate * 0.0175
     
