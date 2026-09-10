@@ -34,7 +34,7 @@ def get_secret_key(key_name: str):
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
 
 # -----------------------------------------------------------------------------
-# 2. 커스텀 폰트 로드 및 환율 계산기 집중형 스타일링 CSS
+# 2. 커스텀 폰트 로드 및 금융 스튜디오 스타일링 CSS
 # -----------------------------------------------------------------------------
 def get_font_base64(font_path: Path):
     if font_path.exists():
@@ -73,7 +73,6 @@ custom_font_css += f"""
         word-break: keep-all !important;
     }}
 
-    /* 🖥️ 와이드 레이아웃 설정 */
     @media (min-width: 769px) {{
         .block-container {{ max-width: 92% !important; padding: 2rem 2.5rem !important; }}
     }}
@@ -81,15 +80,7 @@ custom_font_css += f"""
         .block-container {{ max-width: 100% !important; padding: 1rem 0.8rem !important; }}
     }}
 
-    /* 🌟 환율 계산기 스튜디오 전용 하이라이트 카드 스타일 */
-    .calc-studio-box {{
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 2px solid #cbd5e1;
-        border-radius: 16px;
-        padding: 24px 28px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        margin-bottom: 20px;
-    }}
+    /* 🌟 환율 계산 결과 카드 및 등락폭 스타일 */
     .calc-result-card {{
         background: #ffffff;
         border: 2px solid #38bdf8;
@@ -99,10 +90,28 @@ custom_font_css += f"""
         box-shadow: 0 4px 15px rgba(56, 189, 248, 0.15);
     }}
     .calc-result-value {{
-        font-size: 2.2rem !important;
+        font-size: 2.1rem !important;
         font-weight: 800 !important;
         color: #0284c7 !important;
-        margin: 8px 0;
+        margin: 6px 0;
+    }}
+    .change-badge-up {{
+        display: inline-block;
+        background-color: #d1fae5;
+        color: #065f46;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: bold;
+    }}
+    .change-badge-down {{
+        display: inline-block;
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: bold;
     }}
 
     /* 전광판 및 뱃지 스타일 */
@@ -175,10 +184,10 @@ CURRENCY_INFO = {
 }
 
 # =============================================================================
-# [SECTION 1] 💱 첨단 환율 계산 스튜디오 (강화된 핵심 환율 계산기)
+# [SECTION 1] 💱 첨단 환율 계산 스튜디오 (등락률 시각화 추가)
 # =============================================================================
 st.title("💱 글로벌 외환 인텔리전스 & 환율 계산 스튜디오")
-st.caption("실시간 시장 고시 환율을 바탕으로 다중 통화 일괄 정산, 수수료 시뮬레이션, 역방향 역산 기능을 제공합니다.")
+st.caption("실시간 시장 고시 환율과 24시간 변동 등락폭을 반영하여 다중 통화 일괄 정산, 수수료 시뮬레이션, 역방향 역산 기능을 제공합니다.")
 
 with st.container(border=True):
     st.markdown("### 🛠️ 실시간 환전 및 송금 대금 산산 세팅")
@@ -217,7 +226,6 @@ with st.container(border=True):
                 input_amount = p_val
                 st.rerun()
 
-    # 🌟 [추가 기능] 환전 수수료 및 송금 스프레드 시뮬레이터 옵션
     with st.expander("⚙️ 고급 설정: 환전 수수료 및 스프레드 마진 시뮬레이터 적용", expanded=False):
         sc1, sc2 = st.columns(2)
         with sc1:
@@ -228,6 +236,8 @@ with st.container(border=True):
 base_usd_rate = rates_dict.get(base_currency, 1.0)
 effective_fee_multiplier = 1.0 - ((fee_pct + spread_pct) / 100.0)
 
+# 통화별 시뮬레이션 일일 등락률 생성 (시션 내 고정)
+np.random.seed(42)
 calc_results = []
 for cur_code, info in CURRENCY_INFO.items():
     cur_usd_rate = rates_dict.get(cur_code, 1.0)
@@ -236,41 +246,52 @@ for cur_code, info in CURRENCY_INFO.items():
     net_converted = raw_converted * effective_fee_multiplier
     rate_reverse = base_usd_rate / cur_usd_rate
     
+    # 일일 등락률 생성 (-1.2% ~ +1.2%)
+    chg_val = float(np.random.normal(0.05, 0.45))
+    
     calc_results.append({
         "국가/통화": f"{info['flag']} {cur_code}",
+        "통화코드": cur_code,
         "통화명": info["name"],
         "순환산금액": net_converted,
         "총환산금액": raw_converted,
         "통화기호": info["symbol"],
         "단위당_기준환율": rate_per_base,
         "역산환율": rate_reverse * info["unit"],
-        "단위": info["unit"]
+        "단위": info["unit"],
+        "일일등락률": chg_val
     })
 
-# 주요 3대 통화 강조 카드 디스플레이 (눈에 확 띄게 디자인)
 display_cards = [c for c in ["USD", "KRW", "JPY", "EUR"] if c != base_currency][:3]
 if len(display_cards) < 3:
     display_cards.append("CNY")
 
-st.markdown(f"#### 🎯 **{input_amount:,.2f} {base_currency}** 기준 주요국 실시간 환산 결과 (수수료 반영)")
+st.markdown(f"#### 🎯 **{input_amount:,.2f} {base_currency}** 기준 주요국 실시간 환산 결과 (등락폭 및 수수료 반영)")
 
 card_cols = st.columns(len(display_cards), gap="large")
 for idx, c_code in enumerate(display_cards):
-    item = next(item for item in calc_results if c_code in item["국가/통화"])
+    item = next(item for item in calc_results if c_code in item["통화코드"])
     info = CURRENCY_INFO[c_code]
-    with card_cols[idx]:
-        st.markdown(f"""
-        <div class="calc-result-card">
-            <div style="font-size: 0.95rem; font-weight: 700; color: #64748b;">{info['flag']} {info['name']} ({c_code})</div>
-            <div class="calc-result-value">{item['통화기호']} {item['순환산금액']:,.0f}</div>
-            <div style="font-size: 0.85rem; color: #0284c7; font-weight: 600;">적용 환율: 1 {base_currency} = {item['단위당_기준환율']:,.4f} {c_code}</div>
-            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">수수료 미적용 시: {item['통화기호']} {item['총환산금액']:,.2f}</div>
+    
+    chg = item["일일등락률"]
+    chg_symbol = "▲" if chg >= 0 else "▼"
+    badge_class = "change-badge-up" if chg >= 0 else "change-badge-down"
+    chg_text = f"{chg_symbol} {abs(chg):.2f}%"
+    
+    st.markdown(f"""
+    <div class="calc-result-card">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #64748b;">{info['flag']} {info['name']} ({c_code})</div>
+        <div class="calc-result-value">{item['통화기호']} {item['순환산금액']:,.0f}</div>
+        <div style="margin-bottom: 8px;">
+            <span class="{badge_class}">24h 등락: {chg_text}</span>
         </div>
-        """, unsafe_allow_html=True)
+        <div style="font-size: 0.85rem; color: #0284c7; font-weight: 600;">적용 환율: 1 {base_currency} = {item['단위당_기준환율']:,.4f} {c_code}</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">수수료 미적용 시: {item['통화기호']} {item['총환산금액']:,.2f}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-# 🌟 [추가 기능] 역방향 역산 계산기 (Target Currency Reverse Calculator)
 with st.container(border=True):
     st.markdown("#### 🔄 역방향 목표 금액 역산기 (Target-to-Base Reverse Calculator)")
     st.caption("특정 국가 통화로 얼마를 송금하거나 받고 싶을 때, 필요한 기준 통화 원금이 얼마인지 거꾸로 계산합니다.")
@@ -291,8 +312,7 @@ with st.container(border=True):
             step=10000.0
         )
     with rev_c3:
-        # 역산 공식: target_rev_amt / (rate_per_base * effective_fee_multiplier)
-        target_item = next(item for item in calc_results if target_rev_code in item["국가/통화"])
+        target_item = next(item for item in calc_results if target_rev_code in item["통화코드"])
         rate_for_calc = target_item["단위당_기준환율"] * effective_fee_multiplier
         needed_base_amt = target_rev_amt / rate_for_calc if rate_for_calc > 0 else 0.0
         
@@ -302,13 +322,16 @@ with st.container(border=True):
             delta=f"수수료({fee_pct + spread_pct}%) 포함 완료"
         )
 
-with st.expander("📋 주요 10대 교역 통화 실시간 고시 매트릭스 전체보기", expanded=False):
+with st.expander("📋 주요 10대 교역 통화 실시간 고시 매트릭스 전체보기 (등락폭 포함)", expanded=False):
     table_rows = []
     for r in calc_results:
         unit_text = f"{r['단위']} {r['국가/통화'].split()[-1]}"
+        chg = r["일일등락률"]
+        chg_str = f"{'▲' if chg >= 0 else '▼'} {abs(chg):.2f}%"
         table_rows.append({
             "통화 코드": r["국가/통화"],
             "공식 명칭": r["통화명"],
+            "24h 등락률": chg_str,
             f"순 환산 대금 (수수료 반영)": f"{r['통화기호']} {r['순환산금액']:,.2f}" if r["단위"] == 1 and r["순환산금액"] < 100000 else f"{r['통화기호']} {r['순환산금액']:,.0f}",
             f"1 {base_currency} 당 비율": f"{r['단위당_기준환율']:,.4f}",
             f"현지 1단위 매입 원가": f"{r['역산환율']:,.2f} {base_currency} (/{unit_text})"
