@@ -47,43 +47,29 @@ font_body_path = CURRENT_DIR / "font_body.otf"
 font_title_b64 = get_font_base64(font_title_path)
 font_body_b64 = get_font_base64(font_body_path)
 
-custom_font_css = """
-<style>
-"""
-
+custom_font_css = "<style>\n"
 if font_title_b64:
     custom_font_css += f"""
     @font-face {{
         font-family: 'CustomTitleFont';
         src: url('data:font/otf;base64,{font_title_b64}') format('opentype');
-        font-weight: normal;
-        font-style: normal;
     }}
     """
-
 if font_body_b64:
     custom_font_css += f"""
     @font-face {{
         font-family: 'CustomBodyFont';
         src: url('data:font/otf;base64,{font_body_b64}') format('opentype');
-        font-weight: normal;
-        font-style: normal;
     }}
     """
 
-# 폰트 및 모바일 반응형 CSS 일괄 적용
 custom_font_css += f"""
-    /* 제목 스타일 적용 */
     h1, h2, h3, .stTitle, div[data-testid="stMetricLabel"] {{
         font-family: {'CustomTitleFont, ' if font_title_b64 else ''} 'Pretendard', sans-serif !important;
     }}
-
-    /* 전체 본문 및 입력 컴포넌트 스타일 적용 */
     html, body, [class*="css"], .stMarkdown, .stSelectbox, .stNumberInput, p, span, div {{
         font-family: {'CustomBodyFont, ' if font_body_b64 else ''} 'Pretendard', sans-serif;
     }}
-
-    /* 모바일 반응형 뷰포트 스타일 */
     @media (max-width: 768px) {{
         div[data-testid="stMetricValue"] {{ font-size: 1.3rem !important; }}
         div[data-testid="stMetricLabel"] {{ font-size: 0.8rem !important; }}
@@ -105,7 +91,6 @@ st.set_page_config(
     page_icon="🌐",
     layout="wide",
 )
-
 st.markdown(custom_font_css, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
@@ -232,34 +217,49 @@ rates_dict = live_rates if (live_rates and isinstance(live_rates, dict)) else fa
 current_rate = rates_dict.get(target_currency, fallback_rates.get(target_currency, 1.0))
 
 # -----------------------------------------------------------------------------
-# 8. [전진 배치] 💱 실시간 다중 통화 환율 계산기
+# 8. [전진 배치] 심플 실시간 환율 계산기 (보내는/받는 통화 선택 제거, 자동 연동)
 # -----------------------------------------------------------------------------
 st.subheader("💱 실시간 환율 계산기 (Live Currency Converter)")
-available_currencies = sorted(list(rates_dict.keys()))
 
 with st.container(border=True):
-    c_in1, c_in2, c_out = st.columns([1.2, 1.2, 1.6])
-    with c_in1:
-        src_idx = available_currencies.index(target_currency) if target_currency in available_currencies else 0
-        source_curr = st.selectbox("보내는 통화", options=available_currencies, index=src_idx, key="calc_src")
-        input_amount = st.number_input("금액 입력", min_value=0.0, value=1000.0, step=100.0, format="%.2f")
+    col_calc_input, col_calc_result1, col_calc_result2 = st.columns([1.2, 1.4, 1.4])
+    
+    with col_calc_input:
+        st.markdown(f"**📍 선택 국가 통화 ({target_currency})**")
+        input_amount = st.number_input(
+            "금액 입력",
+            min_value=0.0,
+            value=1000.0,
+            step=100.0,
+            format="%.2f",
+            label_visibility="collapsed"
+        )
+        st.caption(f"현재 선택된 국가: **{country_info['name']}**")
 
-    with c_in2:
-        default_target = "USD" if source_curr == "KRW" else "KRW"
-        tgt_idx = available_currencies.index(default_target) if default_target in available_currencies else 0
-        target_curr = st.selectbox("받는 통화 (환산)", options=available_currencies, index=tgt_idx, key="calc_tgt")
-        rate_src = rates_dict.get(source_curr, 1.0)
-        rate_tgt = rates_dict.get(target_curr, 1.0)
-        one_unit_rate = (rate_tgt / rate_src) if rate_src > 0 else 0.0
-        converted_val = input_amount * one_unit_rate
-        st.caption(f"기준: 1 {source_curr} = {one_unit_rate:,.4f} {target_curr}")
+    # 환율 계산 로직 (USD 기준 크로스 계산)
+    # 1 USD 당 target_currency 비율 = current_rate
+    # 따라서 target_currency 1단위 = (1 / current_rate) USD
+    # KRW 환산: target_currency 1단위 = (rates_dict['KRW'] / current_rate) KRW
+    rate_usd_per_target = rates_dict.get("USD", 1.0) / current_rate
+    rate_krw_per_target = rates_dict.get("KRW", 1350.0) / current_rate
 
-    with c_out:
-        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    val_usd = input_amount * rate_usd_per_target
+    val_krw = input_amount * rate_krw_per_target
+
+    with col_calc_result1:
+        st.markdown("**💵 미화 환산 (USD)**")
         st.metric(
-            label=f"환산 결과 금액 ({target_curr})",
-            value=f"{converted_val:,.2f} {target_curr}",
-            delta=f"{input_amount:,.2f} {source_curr} 변환"
+            label="USD 변환 금액",
+            value=f"${val_usd:,.2f} USD",
+            delta=f"1 {target_currency} = ${rate_usd_per_target:,.4f}"
+        )
+
+    with col_calc_result2:
+        st.markdown("**🇰🇷 원화 환산 (KRW)**")
+        st.metric(
+            label="KRW 변환 금액",
+            value=f"{val_krw:,.2f} KRW",
+            delta=f"1 {target_currency} = ₩{rate_krw_per_target:,.2f}"
         )
 
 st.divider()
