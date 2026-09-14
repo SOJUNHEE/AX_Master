@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-# 1. 페이지 설정 (wide 레이아웃 및 일관된 여백 확보)
+# 1. 페이지 설정 (wide 레이아웃 및 쾌적한 정보 밀도 확보)
 st.set_page_config(
     page_title="Executive SCM Control Tower & Digital Twin",
     page_icon="🍏",
@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# 2. Apple + Bloomberg + McKinsey 통합 디자인 시스템 및 스페이싱/카드 높이 정렬 CSS 주입
+# 2. Apple + Bloomberg + McKinsey 통합 관제 디자인 시스템 및 고밀도 Grid CSS 주입
 st.markdown(
     """
     <style>
@@ -25,102 +25,107 @@ st.markdown(
             color: #1D1D1F;
         }
 
-        /* 메인 컨테이너 좌우 여백 및 Spacing System 통일 */
+        /* 메인 컨테이너 세로 리듬 및 좌우 여백 최적화 (불필요한 스크롤 방지) */
         .block-container {
-            padding-top: 2rem;
-            padding-bottom: 3rem;
-            padding-left: 3rem;
-            padding-right: 3rem;
+            padding-top: 1.2rem;
+            padding-bottom: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
             max-width: 100% !important;
         }
 
+        /* 사이드바 폭 축소 및 공간 효율화 */
         section[data-testid="stSidebar"] {
+            width: 260px !important;
             background-color: rgba(251, 251, 253, 0.98);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(210, 210, 215, 0.6);
         }
 
-        /* 2단계: 상단 Apple Window Header 크기 및 패딩 축소 최적화 */
+        /* Apple Window Header 컴팩트화 */
         .apple-window-bar {
             background: #FFFFFF;
-            padding: 16px 22px;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
             border: 1px solid #E5E5EA;
-            margin-bottom: 24px;
+            margin-bottom: 14px;
         }
 
         .traffic-lights {
             display: flex;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot { width: 9px; height: 9px; border-radius: 50%; }
         .dot-red { background-color: #FF3B30; border: 1px solid #e0443e; }
         .dot-yellow { background-color: #FF9500; border: 1px solid #dea123; }
         .dot-green { background-color: #34C759; border: 1px solid #1aab29; }
 
         /* 타이포그래피 계층 구조 */
-        h1 { font-size: 1.8rem !important; font-weight: 800 !important; color: #1D1D1F !important; letter-spacing: -0.5px; margin-bottom: 0px !important; }
-        h2 { font-size: 1.35rem !important; font-weight: 700 !important; color: #1D1D1F !important; margin-top: 20px !important; margin-bottom: 12px !important; }
-        h3 { font-size: 1.1rem !important; font-weight: 700 !important; color: #3A3A3C !important; margin-top: 10px !important; }
-        p, span, label { color: #1D1D1F; }
+        h1 { font-size: 1.5rem !important; font-weight: 800 !important; color: #1D1D1F !important; letter-spacing: -0.5px; margin-bottom: 0px !important; }
+        h2 { font-size: 1.2rem !important; font-weight: 700 !important; color: #1D1D1F !important; margin-top: 10px !important; margin-bottom: 8px !important; }
+        h3 { font-size: 1.0rem !important; font-weight: 700 !important; color: #3A3A3C !important; margin-top: 6px !important; margin-bottom: 6px !important; }
+        p, span, label { color: #1D1D1F; font-size: 0.9rem; }
 
-        /* 5, 11단계: 모든 KPI 및 요약 카드의 높이/패딩 완벽 통일 (동일 Grid 시스템) */
+        /* KPI 카드 6개 Grid 높이 및 정렬 완벽 통일 (95px 고정) */
         div[data-testid="stMetric"] {
             background: #FFFFFF;
-            padding: 18px 16px;
-            border-radius: 14px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            padding: 12px 14px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
             border: 1px solid #E5E5EA;
             text-align: center;
-            height: 115px; /* 고정 높이 부여로 들쭉날쭉함 방지 */
+            height: 95px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
         div[data-testid="stMetricLabel"] {
-            font-size: 0.85rem !important;
+            font-size: 0.78rem !important;
             font-weight: 600 !important;
             color: #86868B !important;
-            margin-bottom: 2px !important;
+            margin-bottom: 1px !important;
         }
         div[data-testid="stMetricValue"] {
-            font-size: 1.75rem !important;
+            font-size: 1.45rem !important;
             font-weight: 800 !important;
             color: #1D1D1F !important;
-            letter-spacing: -1px;
+            letter-spacing: -0.8px;
+        }
+        div[data-testid="stMetricDelta"] {
+            font-size: 0.75rem !important;
         }
 
-        /* 3단계: AI Insight & Alert Center 높이 최적화 */
+        /* AI Insight & Alert Center 높이 30~40% 축소 및 고밀도화 */
         .ai-alert-box {
             background: #FFFFFF;
-            padding: 16px 20px;
-            border-radius: 14px;
-            border-left: 6px solid #FF3B30;
+            padding: 10px 16px;
+            border-radius: 12px;
+            border-left: 5px solid #FF3B30;
             border: 1px solid #E5E5EA;
-            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.06);
-            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(255, 59, 48, 0.04);
+            margin-bottom: 14px;
         }
         .ai-alert-box ul {
             margin: 0 !important;
-            padding-left: 18px !important;
+            padding-left: 16px !important;
         }
         .ai-alert-box li {
-            line-height: 1.5 !important;
-            font-size: 0.95rem !important;
+            line-height: 1.35 !important;
+            font-size: 0.85rem !important;
             font-weight: 600 !important;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
-        /* 커스텀 카드 컨테이너 (Warehouse, Digital Twin용 동일 규격) */
+        /* 통일된 커스텀 카드 (Warehouse, Digital Twin용) */
         .custom-card {
             background: #FFFFFF;
-            padding: 20px;
-            border-radius: 14px;
+            padding: 16px;
+            border-radius: 12px;
             border: 1px solid #E5E5EA;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-            height: 220px; /* 행 내부 카드 높이 통일 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            height: 200px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -128,30 +133,29 @@ st.markdown(
 
         .exec-summary-box {
             background: #FFFFFF;
-            padding: 22px;
-            border-radius: 14px;
+            padding: 16px 20px;
+            border-radius: 12px;
             border: 1px solid #E5E5EA;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-            margin-top: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            margin-top: 14px;
         }
 
-        /* 9단계: 데이터 테이블 높이 및 가독성 최적화 */
         div[data-testid="stDataFrame"] {
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             border: 1px solid #E5E5EA;
         }
 
         /* 상태 배지 */
-        .badge-green { background-color: #34C759; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
-        .badge-yellow { background-color: #FF9500; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
-        .badge-red { background-color: #FF3B30; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
+        .badge-green { background-color: #34C759; color: white; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+        .badge-yellow { background-color: #FF9500; color: white; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
+        .badge-red { background-color: #FF3B30; color: white; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# 2단계: 상단 Apple Window Header 구조
+# 2. 컴팩트 Apple Window Header UI
 st.markdown(
     """
     <div class="apple-window-bar">
@@ -161,8 +165,8 @@ st.markdown(
             <div class="dot dot-green"></div>
         </div>
         <h1>🏢 SCM Executive Control Tower & Digital Twin</h1>
-        <p style="margin: 4px 0 0 0; color: #86868B; font-size: 0.95rem;">
-            제조·유통·3PL 기업을 위한 실시간 공급망 통합 관제 및 2027 Digital Twin 의사결정 플랫폼
+        <p style="margin: 2px 0 0 0; color: #86868B; font-size: 0.85rem;">
+            제조·유통·3PL 기업 통합 관제 및 2027 Digital Twin What-if 시뮬레이션 플랫폼
         </p>
     </div>
 """,
@@ -170,7 +174,19 @@ st.markdown(
 )
 
 
-# 4. 5개년치 시뮬레이션 데이터 생성 함수 (로직 변경 없음)
+# 금액 축약 포맷 함수 (₩14.6B 또는 ₩146.1억)
+def format_currency(val):
+  if val >= 1000000000000:
+    return f"₩{val / 1000000000000:.1f}T"
+  elif val >= 100000000:
+    return f"₩{val / 100000000:.1f}억"
+  elif val >= 1000000:
+    return f"₩{val / 1000000:.1f}M"
+  else:
+    return f"₩{val:,.0f}"
+
+
+# 4. 5개년치 시뮬레이션 데이터 생성 함수 (로직 유지)
 @st.cache_data
 def generate_control_tower_data():
   np.random.seed(42)
@@ -351,8 +367,10 @@ def generate_control_tower_data():
 
 df = generate_control_tower_data()
 
-# 14단계: 사이드바 그룹화 및 스페이싱 최적화
-st.sidebar.header("🎛️ Control Tower 관제 메뉴")
+# 5. 사이드바 메뉴 및 그룹화 최적화
+st.sidebar.markdown(
+    "<h3 style='margin-bottom:0px;'>🎛️ 관제 메뉴</h3>", unsafe_allow_html=True
+)
 selected_menu = st.sidebar.selectbox("화면 선택", [
     "1. Executive Dashboard",
     "2. Daily Operation Dashboard",
@@ -364,10 +382,13 @@ selected_menu = st.sidebar.selectbox("화면 선택", [
     "8. ABC-XYZ Matrix",
     "9. Supplier Dashboard",
     "10. 🎯 Digital Twin & What-if Planning (2027)",
+    "일반 운영자용 화면",
 ])
 
 st.sidebar.markdown("---")
-st.sidebar.header("🎯 경영진 KPI 목표 설정")
+st.sidebar.markdown(
+    "<h3 style='margin-bottom:0px;'>🎯 KPI 목표 설정</h3>", unsafe_allow_html=True
+)
 target_rev_growth = (
     st.sidebar.number_input("매출 성장률 목표 (%)", value=15.0, step=1.0) / 100.0
 )
@@ -380,21 +401,24 @@ target_cost_reduction = (
 target_otd = st.sidebar.number_input("OTD 목표 (%)", value=98.0, step=0.5)
 
 st.sidebar.markdown("---")
-st.sidebar.header("⚡ What-if 시뮬레이션 설정")
+st.sidebar.markdown(
+    "<h3 style='margin-bottom:0px;'>⚡ What-if 시뮬레이션</h3>",
+    unsafe_allow_html=True,
+)
 sim_rev_growth = (
-    st.sidebar.slider("What-if 매출 성장률 조정 (%)", 0.0, 30.0, 15.0, 0.5) / 100.0
+    st.sidebar.slider("매출 성장률 조정 (%)", 0.0, 30.0, 15.0, 0.5) / 100.0
 )
 sim_cost_reduction = (
-    st.sidebar.slider("What-if 물류비 절감률 조정 (%)", 0.0, 20.0, 8.0, 0.5)
-    / 100.0
+    st.sidebar.slider("물류비 절감률 조정 (%)", 0.0, 20.0, 8.0, 0.5) / 100.0
 )
 sim_otd_boost = (
-    st.sidebar.slider("What-if OTD 개선 계수 조정 (%)", -5.0, 5.0, 1.5, 0.5)
-    / 100.0
+    st.sidebar.slider("OTD 개선 계수 조정 (%)", -5.0, 5.0, 1.5, 0.5) / 100.0
 )
 
 st.sidebar.markdown("---")
-st.sidebar.header("🔍 데이터 필터")
+st.sidebar.markdown(
+    "<h3 style='margin-bottom:0px;'>🔍 데이터 필터</h3>", unsafe_allow_html=True
+)
 date_filter_option = st.sidebar.selectbox(
     "기간 선택",
     [
@@ -446,7 +470,7 @@ if filtered_df.empty:
   st.warning("선택된 조건에 부합하는 데이터가 없습니다.")
   st.stop()
 
-# 2026년 실적 데이터 연동 및 What-if 계산
+# 연도별 예측 데이터 계산
 df_2026 = df[df["year"] == 2026]
 base_rev_2026 = df_2026["revenue"].sum()
 base_vol_2026 = df_2026["sales_quantity"].sum()
@@ -461,7 +485,6 @@ forecast_otd_2027 = min(100.0, base_otd_2026 + (sim_otd_boost * 100))
 target_rev_2027 = base_rev_2026 * (1 + target_rev_growth)
 target_cost_2027 = base_cost_2026 * (1 + target_vol_growth) * (1 - target_cost_reduction)
 
-# KPI 계산 체계
 real_otd = (
     (filtered_df["is_otd"].sum() / len(filtered_df)) * 100
     if len(filtered_df) > 0
@@ -488,7 +511,7 @@ real_health_score = int(
 
 
 # ==========================================
-# 3단계: AI Insight & Alert Center (최상단 고정 관제 경보)
+# 3단계: AI Insight & Alert Center (높이 축소 및 정렬)
 # ==========================================
 busan_avg_util = (
     filtered_df[filtered_df["warehouse"] == "BUSAN_DC"]["utilization_rate"].mean()
@@ -498,7 +521,7 @@ busan_status_color = "#FF3B30" if busan_avg_util > 90 else "#34C759"
 st.markdown(
     f"""
     <div class="ai-alert-box">
-        <h3 style="margin: 0 0 8px 0; color: #FF3B30;">🚨 AI Insight & Alert Center (실시간 관제 경보)</h3>
+        <h3 style="margin: 0 0 4px 0; color: #FF3B30; font-size: 0.95rem;">🚨 AI Insight & Alert Center (실시간 관제 경보)</h3>
         <ul>
             <li><span style="color: {busan_status_color};">[위험]</span> BUSAN_DC 센터 가동률 과부하 발생 <span class="badge-red">{busan_avg_util:.1f}%</span> (추가 인력 및 도크 분산 필수)</li>
             <li><span style="color: #FF3B30;">[위험]</span> SKU 품절 임박 <span class="badge-red">{filtered_df['is_stockout_risk'].sum()}개 SKU 위험</span> (긴급 선행 발주 요망)</li>
@@ -515,7 +538,7 @@ st.markdown(
 # ==========================================
 # 4단계: Today's Operation Summary (6개 KPI Grid 통일)
 # ==========================================
-st.subheader("📋 Today's Operation Summary (오늘의 운영 현황)")
+st.markdown("<h2>📋 Today's Operation Summary (오늘의 운영 현황)</h2>", unsafe_allow_html=True)
 today_df = df[df["order_date"] == max_date]
 t_inbound = today_df["sales_quantity"].sum() + 1500
 t_outbound = today_df["sales_quantity"].sum()
@@ -532,26 +555,25 @@ with t2:
 with t3:
   st.metric(label="오늘 주문량", value=f"{t_order:,} EA")
 with t4:
-  st.metric(label="오늘 물류비", value=f"₩{t_cost:,.0f}")
+  st.metric(label="오늘 물류비", value=format_currency(t_cost))
 with t5:
   st.metric(label="현재 총 재고", value=f"{t_stock:,} EA")
 with t6:
   st.metric(label="품절 위험 SKU", value=f"{t_risk_sku} 개", delta="🔴 위험")
 
-st.markdown("<div style='margin-bottom: 24px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
 
 # ==========================================
-# 관제 메뉴별 화면 렌더링
+# 10개 메뉴 화면 렌더링
 # ==========================================
 if selected_menu == "1. Executive Dashboard":
-  st.subheader("📊 Executive Dashboard (경영진용 핵심 KPI 관제)")
-  st.markdown("기업 공급망 상태를 한 화면에서 파악하고 전략적 의사결정을 수행합니다.")
+  st.markdown("<h2>📊 Executive Dashboard (경영진용 핵심 KPI 관제)</h2>", unsafe_allow_html=True)
 
   stockout_cnt = filtered_df["is_stockout_risk"].sum()
   tot_log_cost = filtered_df["total_logistics_cost"].sum()
 
-  # 5단계: Executive KPI 카드 6개 동일 높이/폭 Grid 통일
+  # 5단계: Executive KPI 카드 6개 동일 Grid 정렬 (금액 축약 적용)
   e1, e2, e3, e4, e5, e6 = st.columns(6)
   with e1:
     st.metric(
@@ -576,14 +598,14 @@ if selected_menu == "1. Executive Dashboard":
         label="Stockout Risk", value=f"{stockout_cnt} SKU", delta="🔴 위험"
     )
   with e6:
-    st.metric(label="Total Logistics Cost", value=f"₩{tot_log_cost:,.0f}")
+    st.metric(label="Total Logistics Cost", value=format_currency(tot_log_cost))
 
-  st.markdown("<div style='margin-bottom: 24px;'></div>", unsafe_allow_html=True)
+  st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
 
-  # 6단계: 2열 차트 영역 높이 통일 (height=400px 동일 지정)
+  # 6단계: 2열 차트 영역 높이 통일 (height=340px 지정, 중복 타이틀/모드바 제거)
   ec1, ec2 = st.columns(2)
   with ec1:
-    st.markdown("#### 채널별 매출 점유율 비교")
+    st.markdown("<h3>채널별 매출 점유율 비교</h3>", unsafe_allow_html=True)
     ch_grp = (
         filtered_df.groupby("channel")[["sales_quantity", "revenue"]]
         .sum()
@@ -594,21 +616,24 @@ if selected_menu == "1. Executive Dashboard":
         x="channel",
         y="revenue",
         color="channel",
-        title="채널별 매출 점유율",
         text_auto=".2s",
     )
     fig_ch.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
-        height=400,
-        margin=dict(l=20, r=20, t=40, b=20),
-        font=dict(size=13, color="#1D1D1F"),
+        height=340,
+        margin=dict(l=10, r=10, t=10, b=10),
+        font=dict(size=12, color="#1D1D1F"),
     )
-    st.plotly_chart(fig_ch, use_container_width=True)
+    st.plotly_chart(
+        fig_ch,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
 
   with ec2:
-    st.markdown("#### 월별 물동량 추이 및 Spike 구간")
+    st.markdown("<h3>월별 물동량 추이 및 Spike 구간</h3>", unsafe_allow_html=True)
     trend_exec = (
         filtered_df.groupby("year_month")["sales_quantity"].sum().reset_index()
     )
@@ -616,21 +641,24 @@ if selected_menu == "1. Executive Dashboard":
         trend_exec,
         x="year_month",
         y="sales_quantity",
-        title="전사 월별 출고량 추이",
     )
     fig_ex_trend.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         xaxis={"tickangle": -45},
-        height=400,
-        margin=dict(l=20, r=20, t=40, b=20),
-        font=dict(size=13, color="#1D1D1F"),
+        height=340,
+        margin=dict(l=10, r=10, t=10, b=10),
+        font=dict(size=12, color="#1D1D1F"),
     )
-    st.plotly_chart(fig_ex_trend, use_container_width=True)
+    st.plotly_chart(
+        fig_ex_trend,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
 
 
 elif selected_menu == "2. Daily Operation Dashboard":
-  st.subheader("📅 Daily Operation Dashboard (일자별 운영 현황)")
+  st.markdown("<h2>📅 Daily Operation Dashboard (일자별 운영 현황)</h2>", unsafe_allow_html=True)
   daily_agg = (
       filtered_df.groupby("date_str")
       .agg({
@@ -643,11 +671,11 @@ elif selected_menu == "2. Daily Operation Dashboard":
       .reset_index()
       .sort_values(by="date_str", ascending=False)
   )
-  st.dataframe(daily_agg, use_container_width=True, height=450)
+  st.dataframe(daily_agg, use_container_width=True, height=400)
 
 
 elif selected_menu == "3. Warehouse Dashboard":
-  st.subheader("🏭 Warehouse Dashboard (물류센터 관제 센터)")
+  st.markdown("<h2>🏭 Warehouse Dashboard (물류센터 관제 센터)</h2>", unsafe_allow_html=True)
 
   wh_summary = (
       filtered_df.groupby("warehouse")
@@ -660,13 +688,13 @@ elif selected_menu == "3. Warehouse Dashboard":
       .reset_index()
   )
 
-  # 7단계: Warehouse 카드 4개 동일 높이 카드 컨테이너 적용
+  # 7단계: Warehouse 카드 4개 동일 높이(custom-card) 적용
   dc_cols = st.columns(4)
   for idx, row in wh_summary.iterrows():
     wh_name = row["warehouse"]
     util = row["utilization_rate"]
     ship_q = f"{row['sales_quantity']:,} EA"
-    cost = f"₩{row['total_logistics_cost']/100000000:.1f}억"
+    cost = format_currency(row["total_logistics_cost"])
     otd = row["is_otd"]
 
     status = "과부하" if util > 90 else ("주의" if util > 80 else "정상")
@@ -689,67 +717,71 @@ elif selected_menu == "3. Warehouse Dashboard":
       st.markdown(
           f"""
             <div class="custom-card" style="border: 2px solid {border_color};">
-                <h3 style="margin: 0 0 4px 0;">{wh_name}</h3>
-                <p style="margin: 2px 0; font-size: 0.95rem;">출고량: <b>{ship_q}</b></p>
-                <p style="margin: 2px 0; font-size: 0.95rem;">가동률: <b>{util:.1f}%</b></p>
-                <p style="margin: 2px 0; font-size: 0.95rem;">상태: {badge_html}</p>
-                <p style="margin: 2px 0; font-size: 0.95rem;">물류비: {cost}</p>
-                <p style="margin: 2px 0; font-size: 0.95rem;">OTD: {otd}</p>
+                <h3 style="margin: 0 0 2px 0;">{wh_name}</h3>
+                <p style="margin: 2px 0;">출고량: <b>{ship_q}</b></p>
+                <p style="margin: 2px 0;">가동률: <b>{util:.1f}%</b></p>
+                <p style="margin: 2px 0;">상태: {badge_html}</p>
+                <p style="margin: 2px 0;">물류비: {cost}</p>
+                <p style="margin: 2px 0;">OTD: {otd}</p>
             </div>
             """,
           unsafe_allow_html=True,
       )
 
-  st.markdown("<div style='margin-bottom: 24px;'></div>", unsafe_allow_html=True)
-  st.dataframe(wh_summary, use_container_width=True, height=300)
+  st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+  st.dataframe(wh_summary, use_container_width=True, height=280)
 
 
 elif selected_menu == "4. Logistics Cost Dashboard":
-  st.subheader("💰 Logistics Cost Dashboard (물류비 분석)")
+  st.markdown("<h2>💰 Logistics Cost Dashboard (물류비 분석)</h2>", unsafe_allow_html=True)
   tot_c = filtered_df["total_logistics_cost"].sum()
   avg_cpu = filtered_df["cost_per_unit"].mean()
 
-  # 8단계: Logistics Cost KPI 카드 디자인 시스템 통일
+  # 8단계: Logistics Cost KPI 카드 디자인 통일
   lc1, lc2 = st.columns(2)
   with lc1:
-    st.metric(label="총 물류비", value=f"₩{tot_c:,.0f}")
+    st.metric(label="총 물류비", value=format_currency(tot_c))
   with lc2:
     st.metric(label="단위당 물류비", value=f"₩{avg_cpu:,.1f}")
 
-  st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+  st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
   cost_df = pd.DataFrame({
       "Cost_Type": ["운송비", "인건비", "보관비", "하역비", "포장비"],
       "Amount": [45, 25, 18, 7, 5],
   })
   fig_lc_pie = px.pie(
-      cost_df, names="Cost_Type", values="Amount", title="물류비 세부 비중 (%)", hole=0.4
+      cost_df, names="Cost_Type", values="Amount", hole=0.4
   )
   fig_lc_pie.update_layout(
-      paper_bgcolor="rgba(0,0,0,0)", font=dict(size=13), height=380
+      paper_bgcolor="rgba(0,0,0,0)", font=dict(size=12), height=340
   )
-  st.plotly_chart(fig_lc_pie, use_container_width=True)
+  st.plotly_chart(
+      fig_lc_pie,
+      use_container_width=True,
+      config={"displayModeBar": False},
+  )
 
 
 elif selected_menu == "5. Inventory Dashboard":
-  st.subheader("📦 Inventory Dashboard (재고 최적화 및 품절 예방)")
+  st.markdown("<h2>📦 Inventory Dashboard (재고 최적화 및 품절 예방)</h2>", unsafe_allow_html=True)
   risk_sku = filtered_df[filtered_df["is_stockout_risk"]][
       ["warehouse", "product_name", "stock_quantity", "days_on_hand"]
   ].drop_duplicates()
-  st.dataframe(risk_sku, use_container_width=True, height=450)
+  st.dataframe(risk_sku, use_container_width=True, height=400)
 
 
 elif selected_menu == "6. Demand Forecast Dashboard":
-  st.subheader("📈 Demand Forecast Dashboard (수요 예측 정확도 분석)")
+  st.markdown("<h2>📈 Demand Forecast Dashboard (수요 예측 정확도 분석)</h2>", unsafe_allow_html=True)
   fc_df = (
       filtered_df.groupby("year_month")[["forecast_quantity", "sales_quantity"]]
       .sum()
       .reset_index()
   )
-  st.dataframe(fc_df, use_container_width=True, height=450)
+  st.dataframe(fc_df, use_container_width=True, height=400)
 
 
 elif selected_menu == "7. ABC Analysis":
-  st.subheader("📊 ABC Analysis (매출 기여도 기반 SKU 자동 분류)")
+  st.markdown("<h2>📊 ABC Analysis (매출 기여도 기반 SKU 자동 분류)</h2>", unsafe_allow_html=True)
   sku_rev = filtered_df.groupby("product_name")["revenue"].sum().reset_index()
   sku_rev = sku_rev.sort_values(by="revenue", ascending=False)
   sku_rev["cum_pct"] = (
@@ -767,11 +799,11 @@ elif selected_menu == "7. ABC Analysis":
 
 
   sku_rev["abc_class"] = sku_rev["cum_pct"].apply(assign_abc)
-  st.dataframe(sku_rev, use_container_width=True, height=450)
+  st.dataframe(sku_rev, use_container_width=True, height=400)
 
 
 elif selected_menu == "8. ABC-XYZ Matrix":
-  st.subheader("🔲 ABC-XYZ Matrix (재고 정책 최적화)")
+  st.markdown("<h2>🔲 ABC-XYZ Matrix (재고 정책 최적화)</h2>", unsafe_allow_html=True)
   matrix_table = pd.DataFrame({
       "Matrix Zone": ["AX Zone", "AZ Zone", "CZ Zone"],
       "Description": [
@@ -785,7 +817,7 @@ elif selected_menu == "8. ABC-XYZ Matrix":
 
 
 elif selected_menu == "9. Supplier Dashboard":
-  st.subheader("🌐 Supplier Dashboard (공급사 성과 및 리스크 평가)")
+  st.markdown("<h2>🌐 Supplier Dashboard (공급사 성과 및 리스크 평가)</h2>", unsafe_allow_html=True)
   sup_summary = (
       filtered_df.groupby("supplier")
       .agg({
@@ -794,16 +826,11 @@ elif selected_menu == "9. Supplier Dashboard":
       })
       .reset_index()
   )
-  st.dataframe(sup_summary, use_container_width=True, height=400)
+  st.dataframe(sup_summary, use_container_width=True, height=380)
 
 
 elif selected_menu == "10. 🎯 Digital Twin & What-if Planning (2027)":
-  st.subheader(
-      "🎯 Executive Digital Twin : Actual vs Target vs Forecast (2027)"
-  )
-  st.markdown(
-      "경영진 사업계획 목표(Target)와 실시간 What-if 시뮬레이션 예측값(Forecast)을 전년 실적(Actual 2026)과 동일 높이 카드 격차로 비교합니다."
-  )
+  st.markdown("<h2>🎯 Executive Digital Twin : Actual vs Target vs Forecast (2027)</h2>", unsafe_allow_html=True)
 
   # 10단계: Digital Twin 3열 카드 동일 높이(custom-card) 적용
   dt1, dt2, dt3 = st.columns(3)
@@ -811,12 +838,12 @@ elif selected_menu == "10. 🎯 Digital Twin & What-if Planning (2027)":
   with dt1:
     st.markdown(
         f"""
-        <div class="custom-card" style="height: 240px;">
-            <h3 style="margin: 0 0 10px 0; color: #1D1D1F;">📌 2026 Actual (실적)</h3>
-            <p style="margin: 4px 0;">매출액: <b>₩{base_rev_2026:,.0f}</b></p>
-            <p style="margin: 4px 0;">물동량: <b>{base_vol_2026:,} EA</b></p>
-            <p style="margin: 4px 0;">물류비: <b>₩{base_cost_2026:,.0f}</b></p>
-            <p style="margin: 4px 0;">정시배송률(OTD): <b>{base_otd_2026:.1f}%</b></p>
+        <div class="custom-card" style="height: 210px;">
+            <h3 style="margin: 0 0 6px 0; color: #1D1D1F;">📌 2026 Actual (실적)</h3>
+            <p style="margin: 2px 0;">매출액: <b>{format_currency(base_rev_2026)}</b></p>
+            <p style="margin: 2px 0;">물동량: <b>{base_vol_2026:,} EA</b></p>
+            <p style="margin: 2px 0;">물류비: <b>{format_currency(base_cost_2026)}</b></p>
+            <p style="margin: 2px 0;">정시배송률(OTD): <b>{base_otd_2026:.1f}%</b></p>
         </div>
     """,
         unsafe_allow_html=True,
@@ -825,12 +852,12 @@ elif selected_menu == "10. 🎯 Digital Twin & What-if Planning (2027)":
   with dt2:
     st.markdown(
         f"""
-        <div class="custom-card" style="height: 240px;">
-            <h3 style="margin: 0 0 10px 0; color: #0066CC;">🎯 2027 Target (목표)</h3>
-            <p style="margin: 4px 0;">매출액 목표: <b>₩{target_rev_2027:,.0f} (+{target_rev_growth*100:.1f}%)</b></p>
-            <p style="margin: 4px 0;">물동량 목표: <b>{int(base_vol_2026 * (1 + target_vol_growth)):,} EA</b></p>
-            <p style="margin: 4px 0;">물류비 목표: <b>₩{target_cost_2027:,.0f}</b></p>
-            <p style="margin: 4px 0;">OTD 목표: <b>{target_otd:.1f}%</b></p>
+        <div class="custom-card" style="height: 210px;">
+            <h3 style="margin: 0 0 6px 0; color: #0066CC;">🎯 2027 Target (목표)</h3>
+            <p style="margin: 2px 0;">매출액 목표: <b>{format_currency(target_rev_2027)} (+{target_rev_growth*100:.1f}%)</b></p>
+            <p style="margin: 2px 0;">물동량 목표: <b>{int(base_vol_2026 * (1 + target_vol_growth)):,} EA</b></p>
+            <p style="margin: 2px 0;">물류비 목표: <b>{format_currency(target_cost_2027)}</b></p>
+            <p style="margin: 2px 0;">OTD 목표: <b>{target_otd:.1f}%</b></p>
         </div>
     """,
         unsafe_allow_html=True,
@@ -842,19 +869,19 @@ elif selected_menu == "10. 🎯 Digital Twin & What-if Planning (2027)":
     ) * 100
     st.markdown(
         f"""
-        <div class="custom-card" style="height: 240px;">
-            <h3 style="margin: 0 0 10px 0; color: #34C759;">🔮 2027 Forecast (예측)</h3>
-            <p style="margin: 4px 0;">예상 매출액: <b>₩{forecast_rev_2027:,.0f} ({rev_diff:+.1f}%)</b></p>
-            <p style="margin: 4px 0;">예상 물동량: <b>{int(forecast_vol_2027):,} EA</b></p>
-            <p style="margin: 4px 0;">예상 물류비: <b>₩{forecast_cost_2027:,.0f}</b></p>
-            <p style="margin: 4px 0;">예상 OTD: <b>{forecast_otd_2027:.1f}%</b></p>
+        <div class="custom-card" style="height: 210px;">
+            <h3 style="margin: 0 0 6px 0; color: #34C759;">🔮 2027 Forecast (예측)</h3>
+            <p style="margin: 2px 0;">예상 매출액: <b>{format_currency(forecast_rev_2027)} ({rev_diff:+.1f}%)</b></p>
+            <p style="margin: 2px 0;">예상 물동량: <b>{int(forecast_vol_2027):,} EA</b></p>
+            <p style="margin: 2px 0;">예상 물류비: <b>{format_currency(forecast_cost_2027)}</b></p>
+            <p style="margin: 2px 0;">예상 OTD: <b>{forecast_otd_2027:.1f}%</b></p>
         </div>
     """,
         unsafe_allow_html=True,
     )
 
-  st.markdown("<div style='margin-bottom: 24px;'></div>", unsafe_allow_html=True)
-  st.markdown("### 📈 전사 월별 물동량 실적 및 2027 Digital Twin 예측 비교")
+  st.markdown("<div style='margin-bottom: 16px;'></div>", unsafe_allow_html=True)
+  st.markdown("<h3>전사 월별 물동량 실적 및 2027 Digital Twin 예측 비교</h3>", unsafe_allow_html=True)
 
   monthly_actual = (
       df.groupby("year_month")["sales_quantity"].sum().reset_index()
@@ -894,31 +921,37 @@ elif selected_menu == "10. 🎯 Digital Twin & What-if Planning (2027)":
       y="sales_quantity",
       color="Type",
       line_dash="Type",
-      title="전사 월별 물동량 실적 및 2027 Digital Twin 예측",
   )
   fig_twin.update_layout(
       paper_bgcolor="rgba(0,0,0,0)",
       plot_bgcolor="rgba(0,0,0,0)",
       xaxis={"tickangle": -45},
-      font=dict(size=13, color="#1D1D1F"),
-      height=400,
+      font=dict(size=12, color="#1D1D1F"),
+      height=360,
+      margin=dict(l=10, r=10, t=10, b=10),
   )
-  st.plotly_chart(fig_twin, use_container_width=True)
+  st.plotly_chart(
+      fig_twin, use_container_width=True, config={"displayModeBar": False}
+  )
+
+
+elif selected_menu == "일반 운영자용 화면":
+  st.markdown("<h2>👤 일반 운영자용 상세 관제 대시보드</h2>", unsafe_allow_html=True)
+  st.dataframe(filtered_df.head(100), use_container_width=True, height=450)
 
 
 # ==========================================
-# 16단계 원칙 준수: 하단 AI Executive Summary 경영진 브리핑
+# 하단 AI Executive Summary 경영진 브리핑
 # ==========================================
 sim_rev_val = forecast_rev_2027 / 100000000
 achieve_cost_reduction = sim_cost_reduction * 100
 target_cost_red_val = target_cost_reduction * 100
 
-st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 st.markdown(
     f"""
     <div class="exec-summary-box">
-        <h3 style="margin: 0 0 10px 0; color: #1D1D1F;">📝 AI Executive Summary (경영진용 종합 브리핑)</h3>
-        <p style="margin: 0; color: #3A3A3C; font-size: 1.0rem; line-height: 1.7;">
+        <h3 style="margin: 0 0 6px 0; color: #1D1D1F;">📝 AI Executive Summary (경영진용 종합 브리핑)</h3>
+        <p style="margin: 0; color: #3A3A3C; font-size: 0.95rem; line-height: 1.6;">
             • <b>매출 및 물동량 전망:</b> 경영진 목표 매출 성장률({target_rev_growth*100:.1f}%)과 What-if 시뮬레이션 결과, 2027년 예상 매출액은 약 <b>{sim_rev_val:.1f}억원</b>으로 추정되며, 월평균 출고량 확대에 따른 선행 인프라 확충이 필요합니다.<br>
             • <b>물류센터 병목 관제:</b> BUSAN_DC 센터의 가동률이 95%를 초과({busan_avg_util:.1f}%)하여 과부하 상태이므로 추가 야간조 인력 투입 및 도크 분산 운영 검토가 시급합니다.<br>
             • <b>물류비 절감 달성도:</b> 현재 What-if 시뮬레이션 기준 물류비 절감률은 <b>{achieve_cost_reduction:.1f}%</b>로, 경영진 목표치({target_cost_red_val:.1f}%)에 소폭 미달하므로 운송비 효율화 대책이 필요합니다.<br>
