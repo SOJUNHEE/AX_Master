@@ -26,14 +26,81 @@ KAKAO_REST_KEY = get_secret_key("KAKAO_MAP_KEY")
 WEATHER_KEY = get_secret_key("OPENWEATHER_API_KEY")
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
 
-st.set_page_config(page_title="여행 가이드 & 스마트 여행 비서", page_icon="🗺️", layout="wide")
+st.set_page_config(page_title="서울 야경 여행 가이드 & 스마트 여행 비서", page_icon="🌃", layout="wide")
 
 if not KAKAO_REST_KEY:
     st.error("⚠️ `KAKAO_MAP_KEY` (카카오 REST API 키)를 설정해주세요.")
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 환율 데이터 로드 (간편 계산기용)
+# 2. 서울 야경 배경 & 모바일 반응형 시인성 강화 CSS 주입
+# -----------------------------------------------------------------------------
+night_view_bg_css = """
+<style>
+    /* 1. 전체 웹 배경: 고해상도 서울 야경 이미지 + 딤(Dark Overlay) 처리 */
+    .stApp {
+        background: linear-gradient(rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.85)),
+                    url("https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=2000&q=80");
+        background-size: cover !important;
+        background-position: center !important;
+        background-attachment: fixed !important;
+    }
+
+    /* 2. 사이드바 배경: 다크 네이비 톤 글래스모피즘 */
+    section[data-testid="stSidebar"] {
+        background: rgba(15, 23, 42, 0.88) !important;
+        backdrop-filter: blur(12px);
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* 3. 사이드바 및 본문 텍스트 색상 보정 */
+    section[data-testid="stSidebar"] * {
+        color: #f1f5f9 !important;
+    }
+    .stMarkdown, h1, h2, h3, h4, h5, p, span, label {
+        color: #f8fafc !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+
+    /* 4. 본문 카드 컨테이너 시인성 향상 (글래스모피즘) */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(30, 41, 59, 0.75) !important;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* 5. 입력창, 셀렉트박스 시인성 (검은 배경 위 선명한 화이트 카드 스타일) */
+    .stTextInput>div>div>input, .stSelectbox>div>div, .stNumberInput>div>div>input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        border: 1px solid #94a3b8 !important;
+    }
+    .stTextInput>div>div>input::placeholder {
+        color: #64748b !important;
+    }
+
+    /* 6. 모바일 반응형 패딩 최적화 */
+    @media (max-width: 768px) {
+        .block-container {
+            padding: 1.5rem 0.8rem !important;
+        }
+        h1 {
+            font-size: 1.6rem !important;
+        }
+        h2, h3 {
+            font-size: 1.25rem !important;
+        }
+    }
+</style>
+"""
+st.markdown(night_view_bg_css, unsafe_allow_html=True)
+
+# -----------------------------------------------------------------------------
+# 3. 환율 데이터 로드 (간편 계산기용)
 # -----------------------------------------------------------------------------
 CURRENCY_INFO = {
     "USD": {"name": "미국 달러화", "flag": "🇺🇸", "symbol": "$", "unit": 1},
@@ -72,7 +139,7 @@ fallback_rates = {
 rates_dict = live_rates if (live_rates and isinstance(live_rates, dict)) else fallback_rates
 
 # -----------------------------------------------------------------------------
-# 3. 카카오 REST API 및 날씨 API 함수
+# 4. 카카오 REST API 및 날씨 API 함수
 # -----------------------------------------------------------------------------
 def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, center_lon: float = None, radius: int = None):
     url = "https://dapi.kakao.com/v2/local/search/keyword.json"
@@ -92,7 +159,6 @@ def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, c
         return None, f"네트워크 오류: {e}"
 
 def get_kakao_place_images(query: str, kakao_key: str, size: int = 3):
-    """카카오 Daum 이미지 검색 REST API를 이용해 장소 실사진을 가져옵니다."""
     url = "https://dapi.kakao.com/v2/search/image"
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
     params = {"query": query, "size": size, "sort": "accuracy"}
@@ -138,7 +204,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str):
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 4. 사이드바: 3가지 장소 탐색 모드
+# 5. 사이드바: 3가지 장소 탐색 모드
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021"},
@@ -225,17 +291,16 @@ with st.sidebar:
                 st.warning(f"반경 {search_radius}m 내에 '{search_query}' 검색 결과가 없습니다.")
 
 # -----------------------------------------------------------------------------
-# 5. 본문 메인 레이아웃
+# 6. 본문 메인 레이아웃
 # -----------------------------------------------------------------------------
-st.title("🗺️ 여행 가이드 & 스마트 여행 비서")
+st.title("🌃 서울 야경 여행 가이드 & 스마트 여행 비서")
 
 if target_lat and target_lon:
     st.subheader(f"🚩 **{target_name}**")
     if target_addr:
         st.caption(f"📍 위치: {target_addr}")
 
-    # 🌟 신규 추가: 선택한 명소 실사진 갤러리 렌더링
-    with st.spinner(f"'{target_name}' 관련 사진을 불러오는 중..."):
+    with st.spinner(f"'{target_name}' 풍경 사진을 가져오는 중..."):
         place_images = get_kakao_place_images(target_name, KAKAO_REST_KEY, size=3)
 
     if place_images:
@@ -247,7 +312,7 @@ if target_lat and target_lon:
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 5-1. [좌측] 카카오 정적 지도 및 줌 컨트롤러
+    # 6-1. [좌측] 지도 및 줌 컨트롤러
     with col_map:
         st.markdown("#### 🗺️ 카카오 지도")
 
@@ -277,24 +342,24 @@ if target_lat and target_lon:
             st.session_state.map_zoom_level = selected_zoom
 
         marker_param = f"type:default|lat:{target_lat},lon:{target_lon}|text:{target_name}"
-        static_map_url = "https://dapi.kakao.com/v2/maps/staticmap"[cite: 1]
+        static_map_url = "https://dapi.kakao.com/v2/maps/staticmap"
         map_params = {
-            "center": f"{target_lon},{target_lat}",[cite: 1]
+            "center": f"{target_lon},{target_lat}",
             "level": st.session_state.map_zoom_level,
             "size": "700x450",
             "markers": [marker_param],
         }
-        headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}[cite: 1]
-        map_res = requests.get(static_map_url, headers=headers, params=map_params)[cite: 1]
+        headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
+        map_res = requests.get(static_map_url, headers=headers, params=map_params)
 
-        if map_res.status_code == 200:[cite: 1]
+        if map_res.status_code == 200:
             st.image(
                 map_res.content,
                 width="stretch",
                 caption=f"{target_name} 카카오 지도 (확대 레벨: {st.session_state.map_zoom_level})"
             )
         else:
-            st.error(f"지도 렌더링 실패 ({map_res.status_code}): {map_res.text}")[cite: 1]
+            st.error(f"지도 렌더링 실패 ({map_res.status_code}): {map_res.text}")
 
         btn_col1, btn_col2 = st.columns(2)
         kakao_link = target_url if target_url else f"https://map.kakao.com/link/map/{target_name},{target_lat},{target_lon}"
@@ -305,7 +370,7 @@ if target_lat and target_lon:
         with btn_col2:
             st.link_button("🚗 카카오맵 길찾기", route_link, width="stretch")
 
-    # 5-2. [우측] 탭 구조 (실시간 날씨 & 맞춤 환율 계산기)
+    # 6-2. [우측] 날씨 및 맞춤 환율 계산기
     with col_right:
         tab_weather, tab_fx_quick = st.tabs(["🌤️ 현지 실시간 날씨", "💱 맞춤 환율 계산기"])
 
@@ -385,7 +450,7 @@ if target_lat and target_lon:
                     st.caption("💡 금액을 입력하면 실시간으로 환전 금액이 계산됩니다.")
 
     # -------------------------------------------------------------------------
-    # 6. 주변 추천 맛집 및 관광 명소 섹션
+    # 7. 주변 추천 맛집 및 관광 명소 섹션
     # -------------------------------------------------------------------------
     st.divider()
     st.markdown(f"### 🍽️ **{target_name}** 주변 맛집 & 📸 추천 관광지")
@@ -415,7 +480,7 @@ if target_lat and target_lon:
                     with t_col1:
                         st.markdown(f"**{item['place_name']}**")
                         st.caption(f"📍 {item.get('road_address_name') or item.get('address_name')} (거리: 약 {item.get('distance')}m)")
-                    with f_col2:
+                    with t_col2:
                         st.link_button("상세보기", item["place_url"], width="stretch")
         else:
             st.info("반경 3km 이내에 등록된 관광 명소 정보가 없습니다.")
