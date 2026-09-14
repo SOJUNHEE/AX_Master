@@ -150,7 +150,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 여행 감성 폰트(Pretendard & Plus Jakarta Sans) + 규격 통일 갤러리 CSS
+# 3. 여행 감성 폰트(Pretendard) + 고시인성 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -162,7 +162,6 @@ st.markdown("""
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
-    /* 헤더 타이포그래피 */
     .main-header-title {
         font-family: 'Plus Jakarta Sans', 'Pretendard', sans-serif !important;
         font-size: 2.2rem !important;
@@ -178,7 +177,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* 사이드바 */
     section[data-testid="stSidebar"] {
         background-color: #ffffff !important;
         border-right: 1px solid #e2e8f0 !important;
@@ -188,7 +186,6 @@ st.markdown("""
         color: #0f172a !important;
     }
 
-    /* 상단 장소 배너 */
     .target-banner-card {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border-radius: 16px;
@@ -211,35 +208,24 @@ st.markdown("""
         gap: 6px;
     }
 
-    /* 🌟 모든 이미지의 높이/가로 비율을 100% 동일하게 통일하는 컨테이너 */
-    .gallery-img-container {
-        width: 100%;
-        aspect-ratio: 16 / 10;
-        overflow: hidden;
-        border-radius: 14px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        background-color: #e2e8f0;
-        margin-bottom: 6px;
-    }
-    .gallery-img-container img {
-        width: 100%;
-        height: 100%;
+    /* 이미지 고정 높이 및 둥근 모서리 규격 통일 */
+    [data-testid="stImage"] img {
+        height: 220px !important;
+        width: 100% !important;
         object-fit: cover !important;
-        display: block;
-        transition: transform 0.25s ease;
-    }
-    .gallery-img-container img:hover {
-        transform: scale(1.03);
-    }
-    .gallery-caption {
-        font-size: 0.82rem;
-        color: #64748b;
-        font-weight: 600;
-        text-align: center;
-        margin-top: 4px;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
     }
 
-    /* 고시인성 프리미엄 카드 */
+    /* 이미지 하단 캡션 폰트 스타일 */
+    [data-testid="stImageCaption"] {
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        text-align: center !important;
+        margin-top: 6px !important;
+    }
+
     .premium-card {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -349,97 +335,127 @@ priority_currencies = ["KRW", "USD", "JPY", "EUR", "CNY", "GBP", "VND", "THB", "
 all_supported_currencies = priority_currencies + sorted([k for k in rates_dict.keys() if k not in priority_currencies])
 
 # -----------------------------------------------------------------------------
-# 5. 엄선된 랜드마크 & 미식 이미지 및 스팟 DB
+# 5. 엄선된 랜드마크 & 명칭(캡션) 매핑 이미지 DB
 # -----------------------------------------------------------------------------
 CURATED_CITY_IMAGES = {
+    "중국": [
+        {"name": "만리장성 (Great Wall of China)", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80"},
+        {"name": "자금성 (Forbidden City)", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?auto=format&fit=crop&w=900&q=80"},
+        {"name": "상하이 와이탄 (The Bund Shanghai)", "url": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?auto=format&fit=crop&w=900&q=80"}
+    ],
+    "베이징": [
+        {"name": "만리장성 (Great Wall of China)", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80"},
+        {"name": "자금성 (The Palace Museum)", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?auto=format&fit=crop&w=900&q=80"},
+        {"name": "이화원 & 천단공원 (Summer Palace)", "url": "https://images.unsplash.com/photo-1599571234909-29ed5d1321d6?auto=format&fit=crop&w=900&q=80"}
+    ],
+    "상하이": [
+        {"name": "상하이 와이탄 야경 (The Bund)", "url": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?auto=format&fit=crop&w=900&q=80"},
+        {"name": "동방명주 & 푸둥 스카이라인", "url": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80"},
+        {"name": "예원 전통 정원 (Yuyuan Garden)", "url": "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=900&q=80"}
+    ],
     "도쿄": [
-        "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80"
+        {"name": "도쿄 타워 (Tokyo Tower)", "url": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=900&q=80"},
+        {"name": "시부야 스크램블 교차로", "url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80"},
+        {"name": "센소지 아사쿠사 전통 사찰", "url": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=80"}
     ],
     "파리": [
-        "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1550340499-a6c0f083dcb4?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1522093007470-ee8db030f9ec?auto=format&fit=crop&w=900&q=80"
+        {"name": "에펠탑 (Tour Eiffel)", "url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=900&q=80"},
+        {"name": "루브르 박물관 (Musée du Louvre)", "url": "https://images.unsplash.com/photo-1550340499-a6c0f083dcb4?auto=format&fit=crop&w=900&q=80"},
+        {"name": "개선문 & 샹젤리제 거리", "url": "https://images.unsplash.com/photo-1522093007470-ee8db030f9ec?auto=format&fit=crop&w=900&q=80"}
     ],
     "방콕": [
-        "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1563492065599-3520f775eeed?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=900&q=80"
+        {"name": "왓 아룬 새벽 사원 (Wat Arun)", "url": "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=900&q=80"},
+        {"name": "방콕 왕궁 (The Grand Palace)", "url": "https://images.unsplash.com/photo-1563492065599-3520f775eeed?auto=format&fit=crop&w=900&q=80"},
+        {"name": "왓 포 거대 와불상 사원", "url": "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=900&q=80"}
     ],
     "뉴욕": [
-        "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=900&q=80"
+        {"name": "타임스 스퀘어 (Times Square)", "url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=900&q=80"},
+        {"name": "맨해튼 스카이라인 & 센트럴 파크", "url": "https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=900&q=80"},
+        {"name": "브루클린 브릿지 (Brooklyn Bridge)", "url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=900&q=80"}
     ],
     "다낭": [
-        "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=900&q=80"
+        {"name": "바나힐 골든 브릿지 (Golden Bridge)", "url": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=900&q=80"},
+        {"name": "미케 비치 (My Khe Beach)", "url": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=900&q=80"},
+        {"name": "오행산 마블 마운틴 (Marble Mountains)", "url": "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=900&q=80"}
     ],
     "런던": [
-        "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=900&q=80"
+        {"name": "빅 벤 & 국회의사당 (Big Ben)", "url": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80"},
+        {"name": "런던 아이 (London Eye)", "url": "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?auto=format&fit=crop&w=900&q=80"},
+        {"name": "타워 브리지 (Tower Bridge)", "url": "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=900&q=80"}
+    ],
+    "서울": [
+        {"name": "경복궁 근정전 (Gyeongbokgung)", "url": "https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=900&q=80"},
+        {"name": "N서울타워 & 남산 야경", "url": "https://images.unsplash.com/photo-1578637387939-43c525ec9001?auto=format&fit=crop&w=900&q=80"},
+        {"name": "북촌 한옥마을 전통 거리", "url": "https://images.unsplash.com/photo-1517154421773-0529f29ea451?auto=format&fit=crop&w=900&q=80"}
     ]
 }
 
-GLOBAL_SPOTS_DB = {
-    "도쿄": {
-        "foods": [
-            {"name": "이치란 시부야점 (一蘭 渋谷店)", "category": "돈코츠 라멘", "dist": "350m", "addr": "1-22-7 Jinnan, Shibuya City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Ichiran+Shibuya+Tokyo"},
-            {"name": "스시노미도리 시부야점 (梅丘寿司の美登利)", "category": "스시 전문점", "dist": "280m", "addr": "Shibuya Mark City East 4F, Shibuya City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Midori+Sushi+Shibuya+Mark+City"},
-            {"name": "규카츠 모토무라 시부야 (牛かつ もと村)", "category": "규카츠/일식", "dist": "410m", "addr": "3-18-10 Shibuya, Shibuya City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Gyukatsu+Motomura+Shibuya"},
-            {"name": "츠키지 장외시장 (스시/해산물)", "category": "전통 해산물 시장", "dist": "4.8km", "addr": "4-16-2 Tsukiji, Chuo City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Tsukiji+Outer+Market+Tokyo"}
-        ],
-        "tours": [
-            {"name": "시부야 스카이 (SHIBUYA SKY)", "category": "전망대/랜드마크", "dist": "150m", "addr": "2-24-12 Shibuya, Shibuya City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=SHIBUYA+SKY"},
-            {"name": "메이지 신궁 (Meiji Jingu)", "category": "신사/역사문화", "dist": "1.2km", "addr": "1-1 Yoyogikamizonocho, Shibuya City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Meiji+Jingu+Tokyo"},
-            {"name": "센소지 & 아사쿠사 (Senso-ji)", "category": "전통 사찰", "dist": "9.2km", "addr": "2-3-1 Asakusa, Taito City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Sensoji+Temple+Tokyo"},
-            {"name": "도쿄 타워 (Tokyo Tower)", "category": "상징 타워", "dist": "4.3km", "addr": "4-2-8 Shibakoen, Minato City, Tokyo", "url": "https://www.google.com/maps/search/?api=1&query=Tokyo+Tower"}
-        ]
-    },
-    "파리": {
-        "foods": [
-            {"name": "르 뷔용 샤르티에 (Bouillon Chartier)", "category": "전통 프렌치 비스트로", "dist": "1.8km", "addr": "7 Rue du Faubourg Montmartre, 75009 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Bouillon+Chartier+Paris"},
-            {"name": "카페 드 플로르 (Café de Flore)", "category": "역사적 카페/디저트", "dist": "2.1km", "addr": "172 Bd Saint-Germain, 75006 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Cafe+de+Flore+Paris"},
-            {"name": "레 코코트 (Les Cocottes)", "category": "프렌치 퀴진", "dist": "450m", "addr": "135 Rue Saint-Dominique, 75007 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Les+Cocottes+Tour+Eiffel"}
-        ],
-        "tours": [
-            {"name": "에펠탑 (Tour Eiffel)", "category": "세계적 랜드마크", "dist": "50m", "addr": "Champ de Mars, 5 Av. Anatole France, 75007 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Eiffel+Tower+Paris"},
-            {"name": "루브르 박물관 (Musée du Louvre)", "category": "세계 3대 미술관", "dist": "3.1km", "addr": "Rue de Rivoli, 75001 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Louvre+Museum+Paris"},
-            {"name": "개선문 (Arc de Triomphe)", "category": "기념비/전망대", "dist": "1.9km", "addr": "Pl. Charles de Gaulle, 75008 Paris", "url": "https://www.google.com/maps/search/?api=1&query=Arc+de+Triomphe+Paris"}
-        ]
-    },
-    "방콕": {
-        "foods": [
-            {"name": "팁싸마이 (Thipsamai)", "category": "원조 팟타이", "dist": "2.4km", "addr": "313 315 Maha Chai Rd, Samran Rat, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=Thipsamai+Bangkok"},
-            {"name": "란쩨오쭐라 (Jeh O Chula)", "category": "미슐랭 똠얌 라면", "dist": "3.6km", "addr": "113 Soi Charat Mueang, Rong Muang, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=Jeh+O+Chula+Bangkok"},
-            {"name": "쏨분 시푸드 (Somboon Seafood)", "category": "뿌빳퐁커리", "dist": "4.1km", "addr": "169 Surawong Rd, Bang Rak, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=Somboon+Seafood+Surawong+Bangkok"}
-        ],
-        "tours": [
-            {"name": "왓 아룬 (새벽 사원)", "category": "불교 사원/탑", "dist": "100m", "addr": "158 Thanon Wang Doem, Wat Arun, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=Wat+Arun+Bangkok"},
-            {"name": "방콕 왕궁 (The Grand Palace)", "category": "왕실 사원", "dist": "1.4km", "addr": "Phra Borom Maha Ratchawang, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=Grand+Palace+Bangkok"},
-            {"name": "아이콘시암 (ICONSIAM)", "category": "복합 쇼핑몰", "dist": "2.8km", "addr": "299 Charoen Nakhon Rd, Khlong San, Bangkok", "url": "https://www.google.com/maps/search/?api=1&query=ICONSIAM+Bangkok"}
-        ]
-    },
-    "다낭": {
-        "foods": [
-            {"name": "포박하이 (Pho Bac Hai)", "category": "정통 쌀국수", "dist": "450m", "addr": "185 Tran Phu, Hai Chau, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=Pho+Bac+Hai+Da+Nang"},
-            {"name": "냐벱 (Nha Bep)", "category": "반쎄오/분짜 전문", "dist": "320m", "addr": "Nguyen Van Thoai, My An, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=Nha+Bep+Restaurant+Da+Nang"},
-            {"name": "목 해산물 식당 (Moc Seafood)", "category": "신선 해산물", "dist": "1.2km", "addr": "26 To Hien Thanh, Son Tra, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=Moc+Seafood+Da+Nang"}
-        ],
-        "tours": [
-            {"name": "미케 비치 (My Khe Beach)", "category": "해변 휴양지", "dist": "50m", "addr": "Vo Nguyen Giap, Son Tra, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=My+Khe+Beach+Da+Nang"},
-            {"name": "다낭 대성당 (핑크 성당)", "category": "프랑스풍 성당", "dist": "2.3km", "addr": "156 Tran Phu, Hai Chau, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=Da+Nang+Cathedral"},
-            {"name": "바나힐 & 골든 브릿지", "category": "테마파크/전망대", "dist": "24km", "addr": "Hoa Vang, Da Nang", "url": "https://www.google.com/maps/search/?api=1&query=Sun+World+Ba+Na+Hills"}
-        ]
-    }
-}
+def get_wikipedia_thumbnail(query_text: str):
+    clean_title = re.sub(r"\(.*?\)", "", query_text).strip()
+    try:
+        url = f"https://ko.wikipedia.org/api/rest_v1/page/summary/{clean_title}"
+        res = requests.get(url, headers={"User-Agent": "TravelGuideApp/1.0"}, timeout=4)
+        if res.status_code == 200:
+            data = res.json()
+            if "thumbnail" in data and "source" in data["thumbnail"]:
+                return data["thumbnail"]["source"], data.get("title", clean_title)
+    except Exception:
+        pass
+    return None, None
 
+def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 3):
+    """
+    각 사진의 실제 명칭(이름)과 URL을 딕셔너리 리스트 형태로 반환합니다.
+    """
+    # 1. 큐레이션된 도시 풀 체크
+    for city_key, img_list in CURATED_CITY_IMAGES.items():
+        if city_key in place_name:
+            return img_list[:size]
+
+    results = []
+    clean_name = re.sub(r"\(.*?\)", "", place_name).strip()
+
+    # 2. 위키백과 대표 썸네일 조회
+    wiki_img, wiki_title = get_wikipedia_thumbnail(place_name)
+    if wiki_img:
+        results.append({"name": f"{clean_name} 전경 ({wiki_title})", "url": wiki_img})
+
+    # 3. 카카오 이미지 검색
+    if kakao_key:
+        try:
+            url = "https://dapi.kakao.com/v2/search/image"
+            headers = {"Authorization": f"KakaoAK {kakao_key}"}
+            params = {"query": f"{clean_name} 풍경", "size": size, "sort": "accuracy"}
+            res = requests.get(url, headers=headers, params=params, timeout=4)
+            if res.status_code == 200:
+                docs = res.json().get("documents", [])
+                for idx, d in enumerate(docs):
+                    img_u = d.get("image_url")
+                    if img_u and not any(r["url"] == img_u for r in results):
+                        results.append({"name": f"{clean_name} 랜드마크 {idx+1}", "url": img_u})
+        except Exception:
+            pass
+
+    # 4. 안전 풀백 (실제 도시 이름 기반 명칭 부여)
+    general_fallbacks = [
+        {"name": f"{clean_name} 대표 랜드마크", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80"},
+        {"name": f"{clean_name} 도심 풍경", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?auto=format&fit=crop&w=900&q=80"},
+        {"name": f"{clean_name} 전통 & 미식 명소", "url": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?auto=format&fit=crop&w=900&q=80"}
+    ]
+    for fb in general_fallbacks:
+        if len(results) >= size:
+            break
+        results.append(fb)
+
+    return results[:size]
+
+# -----------------------------------------------------------------------------
+# 6. 통화 및 국가 코드 스마트 판별
+# -----------------------------------------------------------------------------
 def detect_currency_and_cc(name_str: str):
     q = name_str.lower()
     mapping = [
+        (["중국", "베이징", "상하이", "칭다오", "광저우", "china", "beijing", "shanghai"], ("CNY", "cn")),
         (["도쿄", "일본", "오사카", "교토", "후쿠오카", "tokyo", "japan", "osaka", "fukuoka"], ("JPY", "jp")),
         (["방콕", "태국", "푸켓", "치앙마이", "bangkok", "thailand", "phuket"], ("THB", "th")),
         (["파리", "프랑스", "paris", "france", "니스", "nice"], ("EUR", "fr")),
@@ -450,8 +466,7 @@ def detect_currency_and_cc(name_str: str):
         (["싱가포르", "singapore"], ("SGD", "sg")),
         (["타이베이", "대만", "taiwan", "taipei"], ("TWD", "tw")),
         (["홍콩", "hong kong"], ("HKD", "hk")),
-        (["취리히", "스위스", "인터라켄", "switzerland", "zurich"], ("CHF", "ch")),
-        (["베이징", "상하이", "중국", "china", "beijing", "shanghai"], ("CNY", "cn"))
+        (["취리히", "스위스", "인터라켄", "switzerland", "zurich"], ("CHF", "ch"))
     ]
     for keywords, res in mapping:
         if any(k in q for k in keywords):
@@ -493,31 +508,6 @@ def search_global_place_osm(query: str):
     except Exception as e:
         return None, f"해외 네트워크 오류: {e}"
 
-def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 3):
-    for city_key, img_list in CURATED_CITY_IMAGES.items():
-        if city_key in place_name:
-            return img_list[:size]
-
-    url = "https://dapi.kakao.com/v2/search/image"
-    headers = {"Authorization": f"KakaoAK {kakao_key}"}
-    clean_query = re.sub(r"\(.*?\)", "", place_name).strip()
-    params = {"query": f"{clean_query} 여행 풍경", "size": size, "sort": "accuracy"}
-    try:
-        res = requests.get(url, headers=headers, params=params, timeout=4)
-        if res.status_code == 200:
-            docs = res.json().get("documents", [])
-            images = [doc["image_url"] for doc in docs if doc.get("image_url")]
-            if images:
-                return images[:size]
-    except Exception:
-        pass
-
-    return [
-        "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?auto=format&fit=crop&w=900&q=80",
-        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=900&q=80"
-    ][:size]
-
 def get_nearby_places_by_category(category_code: str, lat: float, lon: float, kakao_key: str, radius: int = 2000):
     url = "https://dapi.kakao.com/v2/local/search/category.json"
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
@@ -551,7 +541,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6. 사이드바: 다국어 & 여행지 선택
+# 7. 사이드바 UI
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -673,7 +663,7 @@ with st.sidebar:
             auto_currency = overseas_presets[selected_name].get("currency", "USD")
 
         else:
-            global_query = st.text_input("해외 도시/랜드마크 입력 (한글/영문)", placeholder="예: 도쿄, 오사카, 방콕, 파리, 바르셀로나, 로마")
+            global_query = st.text_input("해외 도시/랜드마크 입력 (한글/영문)", placeholder="예: 중국, 베이징, 도쿄, 오사카, 방콕, 파리")
             if global_query:
                 osm_results, osm_err = search_global_place_osm(global_query)
                 if osm_err:
@@ -704,7 +694,7 @@ else:
 t = I18N.get(active_lang, I18N["ko"])
 
 # -----------------------------------------------------------------------------
-# 7. 본문 메인 레이아웃
+# 8. 본문 레이아웃 (명칭 기반 갤러리 + 지도 + 날씨/환율 + 맛집/명소)
 # -----------------------------------------------------------------------------
 st.markdown(f'<div class="main-header-title">{t["title"]}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="main-header-sub">{t["subtitle"]}</div>', unsafe_allow_html=True)
@@ -718,23 +708,18 @@ if target_lat and target_lon:
     </div>
     """, unsafe_allow_html=True)
 
-    # 🌟 완벽히 동일한 사이즈/비율로 통일된 갤러리 렌더링
+    # 🌟 각 사진의 실제 명칭이 캡션으로 출력되는 고품질 갤러리
     place_images = get_nearby_tour_or_food_images(target_name, KAKAO_REST_KEY, size=3)
     if place_images:
         img_cols = st.columns(len(place_images))
-        for idx, img_url in enumerate(place_images):
+        for idx, item in enumerate(place_images):
             with img_cols[idx]:
-                st.markdown(f"""
-                <div class="gallery-img-container">
-                    <img src="{img_url}" alt="Highlight {idx+1}" />
-                </div>
-                <div class="gallery-caption">Highlight Photo {idx+1}</div>
-                """, unsafe_allow_html=True)
+                st.image(item["url"], width="stretch", caption=f"📍 {item['name']}")
         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 7-1. [좌측] 인터랙티브 지도
+    # 8-1. [좌측] 인터랙티브 지도
     with col_map:
         st.markdown("#### 🗺️ 인터랙티브 여행 지도")
         st.caption("💡 마우스 휠 스크롤 또는 좌측 상단 [+], [-] 버튼으로 자유롭게 확대/축소할 수 있습니다.")
@@ -766,7 +751,7 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", width="stretch")
 
-    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 계산기
+    # 8-2. [우측] 실시간 날씨 & 전 세계 통화 계산기
     with col_right:
         tab_weather, tab_fx_quick = st.tabs([t["weather_tab"], t["fx_tab"]])
 
@@ -816,16 +801,15 @@ if target_lat and target_lon:
         with tab_fx_quick:
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
-            # 🌟 검색어 및 지역 변경에 따른 정확한 통화 코드 매핑
             if is_overseas:
                 detected_cur, _ = detect_currency_and_cc(target_name)
                 auto_currency = detected_cur
 
             target_to_currency = auto_currency if auto_currency in all_supported_currencies else ("USD" if is_overseas else "KRW")
             
-            # 🌟 Session State 강제 동기화: 장소 바뀔 때 즉시 대상 통화 갱신
-            if "last_destination" not in st.session_state or st.session_state["last_destination"] != target_name:
-                st.session_state["last_destination"] = target_name
+            # Session State 강제 동기화로 목적지 전환 시 통화 자동 변경
+            if "last_dest_key" not in st.session_state or st.session_state["last_dest_key"] != target_name:
+                st.session_state["last_dest_key"] = target_name
                 st.session_state["quick_to_cur"] = target_to_currency
 
             def format_currency_label(code):
@@ -865,7 +849,7 @@ if target_lat and target_lon:
             """, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # 8. 주변 맛집/명소/리뷰 섹션 (국내 & 해외 통합 카드 UI)
+    # 8-3. 주변 맛집/명소/리뷰 섹션 (국내 & 해외 통합 카드 UI)
     # -------------------------------------------------------------------------
     st.divider()
 
@@ -935,25 +919,17 @@ if target_lat and target_lon:
                 st.link_button("🔵 Google 검색", google_search_url, width="stretch")
 
     else:
-        ov_foods, ov_tours = None, None
-        for city_k, data in GLOBAL_SPOTS_DB.items():
-            if city_k in target_name:
-                ov_foods = data["foods"]
-                ov_tours = data["tours"]
-                break
-
-        if not ov_foods:
-            clean_name = target_name.split("(")[0].strip()
-            ov_foods = [
-                {"name": f"{clean_name} 트립어드바이저 1위 맛집", "category": "현지 맛집", "dist": "중심부", "addr": f"{clean_name} Central", "url": f"https://www.google.com/maps/search/{clean_name}+best+restaurants"},
-                {"name": f"{clean_name} 로컬 전통 다이닝", "category": "전통 미식", "dist": "도보 5분", "addr": f"{clean_name} Downtown", "url": f"https://www.google.com/maps/search/{clean_name}+local+dining"},
-                {"name": f"{clean_name} 감성 베이커리 & 카페", "category": "디저트/카페", "dist": "350m", "addr": f"{clean_name} Old Town", "url": f"https://www.google.com/maps/search/{clean_name}+cafe"}
-            ]
-            ov_tours = [
-                {"name": f"{clean_name} 대표 랜드마크 스퀘어", "category": "명소/광장", "dist": "200m", "addr": f"{clean_name} Main Square", "url": f"https://www.google.com/maps/search/{clean_name}+tourist+attractions"},
-                {"name": f"{clean_name} 시립 미술관 & 박물관", "category": "문화예술", "dist": "800m", "addr": f"{clean_name} Museum Area", "url": f"https://www.google.com/maps/search/{clean_name}+museum"},
-                {"name": f"{clean_name} 파노라마 전망대", "category": "야경/전망", "dist": "1.2km", "addr": f"{clean_name} Viewpoint", "url": f"https://www.google.com/maps/search/{clean_name}+viewpoint"}
-            ]
+        clean_name = target_name.split("(")[0].strip()
+        ov_foods = [
+            {"name": f"{clean_name} 트립어드바이저 1위 맛집", "category": "현지 맛집", "dist": "중심부", "addr": f"{clean_name} Central", "url": f"https://www.google.com/maps/search/{clean_name}+best+restaurants"},
+            {"name": f"{clean_name} 로컬 전통 다이닝", "category": "전통 미식", "dist": "도보 5분", "addr": f"{clean_name} Downtown", "url": f"https://www.google.com/maps/search/{clean_name}+local+dining"},
+            {"name": f"{clean_name} 감성 베이커리 & 카페", "category": "디저트/카페", "dist": "350m", "addr": f"{clean_name} Old Town", "url": f"https://www.google.com/maps/search/{clean_name}+cafe"}
+        ]
+        ov_tours = [
+            {"name": f"{clean_name} 대표 랜드마크 스퀘어", "category": "명소/광장", "dist": "200m", "addr": f"{clean_name} Main Square", "url": f"https://www.google.com/maps/search/{clean_name}+tourist+attractions"},
+            {"name": f"{clean_name} 시립 미술관 & 박물관", "category": "문화예술", "dist": "800m", "addr": f"{clean_name} Museum Area", "url": f"https://www.google.com/maps/search/{clean_name}+museum"},
+            {"name": f"{clean_name} 파노라마 전망대", "category": "야경/전망", "dist": "1.2km", "addr": f"{clean_name} Viewpoint", "url": f"https://www.google.com/maps/search/{clean_name}+viewpoint"}
+        ]
 
         with tab_food:
             for item in ov_foods:
