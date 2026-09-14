@@ -44,7 +44,7 @@ WEATHER_KEY = get_secret_key("OPENWEATHER_API_KEY")
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
 
 st.set_page_config(
-    page_title="스마트 글로벌 트래블 매니저",
+    page_title="토끼의 스마트 글로벌 트래블 매니저 🐰",
     page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -55,22 +55,22 @@ if not KAKAO_REST_KEY:
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 다국어(i18n) 및 글로벌 메타데이터
+# 2. 다국어(i18n) 및 토끼 감성 메타데이터
 # -----------------------------------------------------------------------------
 I18N = {
     "ko": {
-        "title": "🧭 스마트 글로벌 트래블 매니저",
+        "title": "🧭 스마트 글로벌 트래블 매니저 🐰",
         "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·항공권·명소 원스톱 가이드",
         "weather_tab": "🌤️ 현지 실시간 날씨",
         "fx_tab": "💱 실시간 환율 & 항공권",
         "feels_like": "체감 온도",
         "humidity": "습도",
         "wind": "풍속",
-        "travel_tip": "💡 오늘의 여행 팁",
-        "tip_rain": "☔ 비 예보가 있습니다. 접이식 우산을 챙기세요.",
-        "tip_hot": "☀️ 무더운 날씨입니다. 충분한 수분을 섭취하세요.",
-        "tip_cold": "🧣 쌀쌀한 날씨입니다. 따뜻한 외투를 준비하세요.",
-        "tip_good": "🚶 야외 여행과 시내 투어를 즐기기에 쾌적한 날씨입니다.",
+        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ 토끼의 오늘의 여행 팁",
+        "tip_rain": "☔ 비 예보가 있어요! 귀여운 접이식 우산을 꼭 챙기세요.",
+        "tip_hot": "☀️ 날씨가 많이 더워요! 시원한 음료로 수분을 충전해 주세요.",
+        "tip_cold": "🧣 쌀쌀한 날씨예요. 따뜻한 외투를 입고 외출하세요!",
+        "tip_good": "🚶 산책하고 예쁜 사진 찍기 너무 좋은 쾌적한 날씨예요!",
         "calc_title": "💱 출발국 ⇄ 현지 통화 스마트 환전 계산",
         "amt_label": "환전할 금액",
         "res_label": "환전 수령 예상 금액",
@@ -87,15 +87,15 @@ I18N = {
         "naver_blog": "🟢 네이버 여행기 검색"
     },
     "en": {
-        "title": "🧭 Smart Global Travel Manager",
+        "title": "🧭 Smart Global Travel Manager 🐰",
         "subtitle": "Real-time location, weather, exchange rate, flights & local spots guide worldwide",
         "weather_tab": "🌤️ Live Weather",
         "fx_tab": "💱 Live FX & Flights",
         "feels_like": "Feels Like",
         "humidity": "Humidity",
         "wind": "Wind Speed",
-        "travel_tip": "💡 Travel Tip",
-        "tip_rain": "☔ Rain expected. Don't forget your umbrella.",
+        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ Bunny's Travel Tip",
+        "tip_rain": "☔ Rain expected. Don't forget your umbrella!",
         "tip_hot": "☀️ Very warm. Stay hydrated while exploring.",
         "tip_cold": "🧣 Chilly weather. Dress warmly.",
         "tip_good": "🚶 Perfect weather for walking and outdoor sightseeing.",
@@ -115,18 +115,18 @@ I18N = {
         "naver_blog": "🟢 Travel Blog Reviews"
     },
     "ja": {
-        "title": "🧭 スマートグローバルトラベルガイド",
+        "title": "🧭 スマートグローバルトラベルガイド 🐰",
         "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・航空券・観光地ワンストップガイド",
         "weather_tab": "🌤️ 現地のリアルタイム天気",
         "fx_tab": "💱 為替レート & 航空券",
         "feels_like": "体感温度",
         "humidity": "湿度",
         "wind": "風速",
-        "travel_tip": "💡 旅行アドバイス",
-        "tip_rain": "☔ 雨の予報です。折りたたみ傘をお持ちください。",
+        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ うさぎのおすすめアドバイス",
+        "tip_rain": "☔ 雨の予報です。折りたたみ傘をお持ちくださいね。",
         "tip_hot": "☀️ 暑い日です。水分補給をしっかり行ってください。",
         "tip_cold": "🧣 肌寒い天気です。暖かい上着をご用意ください。",
-        "tip_good": "🚶 散歩や市内観光に最適な快適な天気です。",
+        "tip_good": "🚶 お散歩や市内観光に最適な快適な天気です！",
         "calc_title": "💱 自動為替計算",
         "amt_label": "換金する金額",
         "res_label": "受取予想金額",
@@ -152,15 +152,16 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 여행 감성 폰트(Pretendard) + 고시인성 스타일 CSS
+# 3. 🐰 포근하고 귀여운 파스텔 톤 + 고시인성 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
 
+    /* 전체 배경에 포근한 파스텔 감성 부여 */
     .stApp {
-        background-color: #f8fafc !important;
+        background: linear-gradient(135deg, #fdfbfd 0%, #f4f6fb 100%) !important;
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
@@ -168,71 +169,77 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', 'Pretendard', sans-serif !important;
         font-size: 2.2rem !important;
         font-weight: 800 !important;
-        color: #0f172a !important;
+        color: #1e293b !important;
         letter-spacing: -0.03em;
         margin-bottom: 0.3rem !important;
     }
     .main-header-sub {
-        font-size: 0.95rem !important;
+        font-size: 0.98rem !important;
         color: #64748b !important;
         margin-bottom: 1.5rem !important;
         font-weight: 500;
     }
 
+    /* 사이드바 디자인 */
     section[data-testid="stSidebar"] {
         background-color: #ffffff !important;
-        border-right: 1px solid #e2e8f0 !important;
-        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
+        border-right: 1.5px solid #f1f5f9 !important;
+        box-shadow: 4px 0 20px rgba(226, 232, 240, 0.5);
     }
     section[data-testid="stSidebar"] * {
-        color: #0f172a !important;
+        color: #1e293b !important;
     }
 
+    /* 상단 목적지 카드 (토끼 톤온톤 그라데이션) */
     .target-banner-card {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border-radius: 16px;
+        background: linear-gradient(135deg, #475569 10%, #1e293b 100%);
+        border-radius: 18px;
         padding: 22px 28px;
         color: #ffffff !important;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+        box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.2);
         margin-bottom: 20px;
     }
     .target-banner-name {
         font-size: 1.7rem !important;
         font-weight: 800 !important;
-        color: #f8fafc !important;
+        color: #ffffff !important;
         margin-bottom: 6px !important;
     }
     .target-banner-addr {
         font-size: 0.95rem !important;
-        color: #94a3b8 !important;
+        color: #cbd5e1 !important;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
+    /* 이미지 스타일 */
     [data-testid="stImage"] img {
         height: 220px !important;
         width: 100% !important;
         object-fit: cover !important;
-        border-radius: 14px !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.2) !important;
+        border: 2px solid #ffffff;
     }
 
     [data-testid="stImageCaption"] {
-        font-size: 0.9rem !important;
+        font-size: 0.92rem !important;
         font-weight: 700 !important;
-        color: #1e293b !important;
+        color: #334155 !important;
         text-align: center !important;
-        margin-top: 6px !important;
+        margin-top: 8px !important;
     }
 
+    /* 프리미엄 카드 디자인 */
     .premium-card {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 14px !important;
+        border-radius: 16px !important;
         padding: 18px 22px !important;
         margin-bottom: 14px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 4px 12px rgba(226, 232, 240, 0.6) !important;
+        transition: transform 0.2s ease;
     }
     .place-name-text {
         font-size: 1.18rem !important;
@@ -243,9 +250,9 @@ st.markdown("""
         display: inline-block;
         font-size: 0.8rem !important;
         font-weight: 700 !important;
-        color: #2563eb !important;
-        background: #eff6ff !important;
-        border: 1px solid #dbeafe !important;
+        color: #4f46e5 !important;
+        background: #eef2ff !important;
+        border: 1px solid #e0e7ff !important;
         padding: 3px 10px;
         border-radius: 9999px;
         margin-left: 8px;
@@ -264,21 +271,26 @@ st.markdown("""
     }
     .place-addr-text {
         font-size: 0.92rem !important;
-        color: #475569 !important;
+        color: #64748b !important;
         margin-top: 8px !important;
         line-height: 1.4;
     }
+
+    /* 글래스모피즘 메트릭 카드 */
     .glass-metric-card {
-        background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 14px !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(8px);
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 16px !important;
         padding: 20px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
     }
+
+    /* 탭 스타일 */
     .stTabs [data-baseweb="tab-list"] {
         background-color: #f1f5f9 !important;
-        border-radius: 12px !important;
-        padding: 5px !important;
+        border-radius: 14px !important;
+        padding: 6px !important;
         gap: 6px !important;
         border: 1px solid #e2e8f0 !important;
     }
@@ -286,13 +298,13 @@ st.markdown("""
         font-size: 0.98rem !important;
         font-weight: 700 !important;
         color: #64748b !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
         padding: 8px 18px !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #ffffff !important;
-        color: #0f172a !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
+        color: #1e293b !important;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -391,7 +403,6 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     results = []
     clean_name = re.sub(r"\(.*?\)", "", place_name).strip()
 
-    # 카카오 이미지 검색 시도
     if kakao_key:
         try:
             url = "https://dapi.kakao.com/v2/search/image"
@@ -407,7 +418,6 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
         except Exception:
             pass
 
-    # 안전 폴백 이미지 풀
     general_fallbacks = [
         {"name": f"{clean_name} 대표 랜드마크", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=900&q=80"},
         {"name": f"{clean_name} 도심 스카이라인", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=80"},
@@ -426,16 +436,16 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
 def detect_currency_and_cc(name_str: str):
     q = name_str.lower()
     mapping = [
-        (["중국", "베이징", "상하이", "칭다오", "china", "beijing", "shanghai"], ("CNY", "cn")),
-        (["도쿄", "일본", "오사카", "교토", "후쿠오카", "tokyo", "japan", "osaka", "fukuoka"], ("JPY", "jp")),
-        (["방콕", "태국", "푸켓", "bangkok", "thailand", "phuket"], ("THB", "th")),
-        (["파리", "프랑스", "paris", "france", "니스"], ("EUR", "fr")),
-        (["뉴욕", "미국", "워싱턴", "new york", "usa", "la"], ("USD", "us")),
-        (["다낭", "베트남", "하노이", "danang", "vietnam", "hanoi"], ("VND", "vn")),
+        (["중국", "베이징", "상하이", "china", "beijing", "shanghai"], ("CNY", "cn")),
+        (["도쿄", "일본", "오사카", "tokyo", "japan", "osaka"], ("JPY", "jp")),
+        (["방콕", "태국", "bangkok", "thailand"], ("THB", "th")),
+        (["파리", "프랑스", "paris", "france"], ("EUR", "fr")),
+        (["뉴욕", "미국", "new york", "usa"], ("USD", "us")),
+        (["다낭", "베트남", "danang", "vietnam"], ("VND", "vn")),
         (["런던", "영국", "london", "uk"], ("GBP", "gb")),
         (["시드니", "호주", "sydney", "australia"], ("AUD", "au")),
         (["싱가포르", "singapore"], ("SGD", "sg")),
-        (["타이베이", "대만", "taiwan", "taipei"], ("TWD", "tw")),
+        (["타이베이", "대만", "taiwan"], ("TWD", "tw")),
         (["홍콩", "hong kong"], ("HKD", "hk")),
         (["취리히", "스위스", "switzerland"], ("CHF", "ch"))
     ]
@@ -499,7 +509,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 7. 사이드바 UI
+# 7. 사이드바 UI (토끼 아이콘 가이드 적용)
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -513,10 +523,11 @@ preset_places = {
 }
 
 with st.sidebar:
-    st.markdown("### 🌐 **언어 / Language**")
+    st.markdown("### 🐰 ₍ᐢ. ̫.ᐢ₎ **언어 설정 / Language**")
     lang_mode = st.selectbox("UI 언어 선택", ["한국어 (KO)", "English (EN)", "日本語 (JA)"])
 
     st.markdown("---")
+    st.markdown("👉 **여행할 권역을 선택해주세요!**")
     region_type = st.radio("여행지 권역", ["🇰🇷 국내 여행", "✈️ 해외 여행"])
 
     target_name = None
@@ -650,8 +661,8 @@ if target_lat and target_lon:
     region_badge = "✈️ Global" if is_overseas else "🇰🇷 Domestic"
     st.markdown(f"""
     <div class="target-banner-card">
-        <div class="target-banner-name">[{region_badge}] {target_name}</div>
-        <div class="target-banner-addr"><span>Location / 주소:</span> {target_addr}</div>
+        <div class="target-banner-name">[{region_badge}] 🐰 {target_name}</div>
+        <div class="target-banner-addr"><span>📍 Location / 주소:</span> {target_addr}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -661,14 +672,14 @@ if target_lat and target_lon:
         img_cols = st.columns(len(place_images))
         for idx, item in enumerate(place_images):
             with img_cols[idx]:
-                st.image(item["url"], use_container_width=True, caption=f"📍 {item['name']}")
+                st.image(item["url"], use_container_width=True, caption=f"📸 {item['name']}")
         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
     # 8-1. [좌측] 지도 & 길찾기
     with col_map:
-        st.markdown("#### 🗺️ 인터랙티브 여행 지도")
+        st.markdown("#### 🗺️ ૮꒰ ˶• ᆺ •˶ ꒱ა 인터랙티브 여행 지도")
         if HAS_FOLIUM:
             m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
             folium.Marker([target_lat, target_lon], popup=target_name, tooltip=target_name, icon=folium.Icon(color="red", icon="info-sign")).add_to(m)
@@ -772,7 +783,7 @@ if target_lat and target_lon:
             st.markdown(f"""
             <div class="glass-metric-card" style="margin-top: 10px;">
                 <div style="font-size: 0.85rem; color: #64748b; font-weight: 700;">{t['res_label']} ({to_cur})</div>
-                <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #4f46e5; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
                 <div style="font-size: 0.82rem; color: #475569; margin-top: 4px;">
                     • 1 {from_cur} = {exchange_rate:,.4f} {to_cur}<br>
                     • 1 {to_cur} = <b>{reverse_rate:,.2f} {from_cur}</b> (여행 체감 물가)
@@ -790,7 +801,7 @@ if target_lat and target_lon:
             naver_flight_url = f"https://flight.naver.com/"
 
             st.markdown(f"""
-            <div class="glass-metric-card" style="background: linear-gradient(135deg, #eff6ff 0%, #f1f5f9 100%) !important;">
+            <div class="glass-metric-card" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;">
                 <div style="font-size: 0.92rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                     ✈️ 인천(ICN) ⇄ {target_name} 항공편
                 </div>
@@ -814,7 +825,7 @@ if target_lat and target_lon:
     # -------------------------------------------------------------------------
     st.divider()
 
-    st.markdown(f"### 🍽️ **{target_name}** {t['food_tab']} & {t['tour_tab']}")
+    st.markdown(f"### 🍽️ ദ്ദി(⸝⸝ʚ̴̶̷ ᴗ ʚ̴̶̷⸝⸝) **{target_name}** {t['food_tab']} & {t['tour_tab']}")
     tab_food, tab_tour, tab_search = st.tabs([t["food_tab"], t["tour_tab"], t["portal_tab"]])
 
     if not is_overseas:
@@ -946,4 +957,4 @@ if target_lat and target_lon:
                 st.link_button(t["naver_blog"], naver_overseas_url, use_container_width=True)
 
 else:
-    st.info("👈 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요.")
+    st.info("👈 ₍ᐢ. ̫.ᐢ₎ 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
