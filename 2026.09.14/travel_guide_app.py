@@ -6,7 +6,7 @@ import requests
 import streamlit as st
 
 # -----------------------------------------------------------------------------
-# 0. 라이브러리 안전 임포트 (배포 환경 모듈 누락 완벽 방어)
+# 0. 라이브러리 안전 임포트
 # -----------------------------------------------------------------------------
 try:
     from streamlit_geolocation import streamlit_geolocation
@@ -141,14 +141,6 @@ I18N = {
     }
 }
 
-GLOBAL_COUNTRY_DATA = {
-    "kr": ("KRW", "ko"), "us": ("USD", "en"), "jp": ("JPY", "ja"), "gb": ("GBP", "en"),
-    "fr": ("EUR", "en"), "de": ("EUR", "en"), "it": ("EUR", "en"), "es": ("EUR", "en"),
-    "vn": ("VND", "en"), "cn": ("CNY", "en"), "tw": ("TWD", "en"), "hk": ("HKD", "en"),
-    "th": ("THB", "en"), "ph": ("PHP", "en"), "sg": ("SGD", "en"), "my": ("MYR", "en"),
-    "id": ("IDR", "en"), "au": ("AUD", "en"), "ca": ("CAD", "en"), "ch": ("CHF", "en")
-}
-
 GLOBAL_CURRENCY_NAMES = {
     "KRW": "대한민국 원 (KRW)", "USD": "미국 달러 (USD)", "JPY": "일본 엔 (JPY)", "EUR": "유로존 유로 (EUR)",
     "GBP": "영국 파운드 (GBP)", "CNY": "중국 위안 (CNY)", "VND": "베트남 동 (VND)", "THB": "태국 바트 (THB)",
@@ -158,14 +150,35 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 고시인성 프리미엄 UI CSS
+# 3. 여행 감성 폰트(Pretendard & Plus Jakarta Sans) + 규격 통일 갤러리 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+
     .stApp {
         background-color: #f8fafc !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
+    
+    /* 헤더 타이포그래피 */
+    .main-header-title {
+        font-family: 'Plus Jakarta Sans', 'Pretendard', sans-serif !important;
+        font-size: 2.2rem !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.3rem !important;
+    }
+    .main-header-sub {
+        font-size: 0.95rem !important;
+        color: #64748b !important;
+        margin-bottom: 1.5rem !important;
+        font-weight: 500;
+    }
+
+    /* 사이드바 */
     section[data-testid="stSidebar"] {
         background-color: #ffffff !important;
         border-right: 1px solid #e2e8f0 !important;
@@ -174,18 +187,8 @@ st.markdown("""
     section[data-testid="stSidebar"] * {
         color: #0f172a !important;
     }
-    .main-header-title {
-        font-size: 2.1rem !important;
-        font-weight: 800 !important;
-        color: #0f172a !important;
-        letter-spacing: -0.02em;
-        margin-bottom: 0.3rem !important;
-    }
-    .main-header-sub {
-        font-size: 0.95rem !important;
-        color: #64748b !important;
-        margin-bottom: 1.5rem !important;
-    }
+
+    /* 상단 장소 배너 */
     .target-banner-card {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border-radius: 16px;
@@ -207,6 +210,36 @@ st.markdown("""
         align-items: center;
         gap: 6px;
     }
+
+    /* 🌟 모든 이미지의 높이/가로 비율을 100% 동일하게 통일하는 컨테이너 */
+    .gallery-img-container {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        overflow: hidden;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        background-color: #e2e8f0;
+        margin-bottom: 6px;
+    }
+    .gallery-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover !important;
+        display: block;
+        transition: transform 0.25s ease;
+    }
+    .gallery-img-container img:hover {
+        transform: scale(1.03);
+    }
+    .gallery-caption {
+        font-size: 0.82rem;
+        color: #64748b;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 4px;
+    }
+
+    /* 고시인성 프리미엄 카드 */
     .premium-card {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -216,7 +249,7 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
     }
     .place-name-text {
-        font-size: 1.2rem !important;
+        font-size: 1.18rem !important;
         font-weight: 800 !important;
         color: #0f172a !important;
     }
@@ -264,7 +297,7 @@ st.markdown("""
         border: 1px solid #e2e8f0 !important;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 1.0rem !important;
+        font-size: 0.98rem !important;
         font-weight: 700 !important;
         color: #64748b !important;
         border-radius: 8px !important;
@@ -654,7 +687,6 @@ with st.sidebar:
                     target_lon = float(chosen_osm["lon"])
                     target_addr = chosen_osm.get("display_name")
                     
-                    # 🌟 정확한 통화 코드 및 국가 코드 판별
                     detected_cur, detected_cc = detect_currency_and_cc(target_name + " " + global_query)
                     auto_currency = detected_cur if detected_cur in rates_dict else "USD"
                     target_cc = detected_cc
@@ -686,14 +718,19 @@ if target_lat and target_lon:
     </div>
     """, unsafe_allow_html=True)
 
-    # 🌟 고화질 대표 갤러리 로딩
+    # 🌟 완벽히 동일한 사이즈/비율로 통일된 갤러리 렌더링
     place_images = get_nearby_tour_or_food_images(target_name, KAKAO_REST_KEY, size=3)
     if place_images:
         img_cols = st.columns(len(place_images))
         for idx, img_url in enumerate(place_images):
             with img_cols[idx]:
-                st.image(img_url, width="stretch", caption=f"Highlight Photo {idx+1}")
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div class="gallery-img-container">
+                    <img src="{img_url}" alt="Highlight {idx+1}" />
+                </div>
+                <div class="gallery-caption">Highlight Photo {idx+1}</div>
+                """, unsafe_allow_html=True)
+        st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
@@ -779,16 +816,17 @@ if target_lat and target_lon:
         with tab_fx_quick:
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
-            # 🌟 해외 도시 검색 시 정확한 현지 통화로 강제 인덱싱
+            # 🌟 검색어 및 지역 변경에 따른 정확한 통화 코드 매핑
             if is_overseas:
                 detected_cur, _ = detect_currency_and_cc(target_name)
                 auto_currency = detected_cur
 
             target_to_currency = auto_currency if auto_currency in all_supported_currencies else ("USD" if is_overseas else "KRW")
-            try:
-                to_default_idx = all_supported_currencies.index(target_to_currency)
-            except ValueError:
-                to_default_idx = 0
+            
+            # 🌟 Session State 강제 동기화: 장소 바뀔 때 즉시 대상 통화 갱신
+            if "last_destination" not in st.session_state or st.session_state["last_destination"] != target_name:
+                st.session_state["last_destination"] = target_name
+                st.session_state["quick_to_cur"] = target_to_currency
 
             def format_currency_label(code):
                 return GLOBAL_CURRENCY_NAMES.get(code, f"{code} (공식 통화)")
@@ -797,9 +835,8 @@ if target_lat and target_lon:
             with col_src:
                 from_cur = st.selectbox("출발 통화", all_supported_currencies, index=0, format_func=format_currency_label, key="quick_from_cur")
             with col_dst:
-                to_cur = st.selectbox("도착지 통화 (현지)", all_supported_currencies, index=to_default_idx, format_func=format_currency_label, key="quick_to_cur")
+                to_cur = st.selectbox("도착지 통화 (현지)", all_supported_currencies, format_func=format_currency_label, key="quick_to_cur")
 
-            # 💡 여행자 편의를 위해 기본값 10만 원(100,000 KRW)으로 실감 나게 표시
             calc_amt = st.number_input(
                 f"{t['amt_label']} ({from_cur})", 
                 min_value=0.0, 
@@ -828,7 +865,7 @@ if target_lat and target_lon:
             """, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # 8. 주변 맛집/명소/리뷰 섹션 (국내 & 해외 완벽 통합 카드 UI)
+    # 8. 주변 맛집/명소/리뷰 섹션 (국내 & 해외 통합 카드 UI)
     # -------------------------------------------------------------------------
     st.divider()
 
@@ -836,7 +873,6 @@ if target_lat and target_lon:
     tab_food, tab_tour, tab_search = st.tabs([t["food_tab"], t["tour_tab"], t["portal_tab"]])
 
     if not is_overseas:
-        # [국내 카카오 카테고리 데이터]
         foods_list, _ = get_nearby_places_by_category("FD6", target_lat, target_lon, KAKAO_REST_KEY, radius=2000)
         tours_list, _ = get_nearby_places_by_category("AT4", target_lat, target_lon, KAKAO_REST_KEY, radius=3000)
 
@@ -899,7 +935,6 @@ if target_lat and target_lon:
                 st.link_button("🔵 Google 검색", google_search_url, width="stretch")
 
     else:
-        # [해외 엄선 데이터 또는 글로벌 동적 스팟 렌더링]
         ov_foods, ov_tours = None, None
         for city_k, data in GLOBAL_SPOTS_DB.items():
             if city_k in target_name:
