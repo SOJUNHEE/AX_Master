@@ -3,23 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 import streamlit as st
-
-# -----------------------------------------------------------------------------
-# 0. 필수/선택 라이브러리 안전 임포트 (배포 환경 모듈 누락 방어)
-# -----------------------------------------------------------------------------
-try:
-    from streamlit_geolocation import streamlit_geolocation
-    HAS_GEO = True
-except (ImportError, ModuleNotFoundError):
-    HAS_GEO = False
-    streamlit_geolocation = None
-
-try:
-    import folium
-    from streamlit_folium import st_folium
-    HAS_FOLIUM = True
-except (ImportError, ModuleNotFoundError):
-    HAS_FOLIUM = False
+from streamlit_geolocation import streamlit_geolocation
 
 # -----------------------------------------------------------------------------
 # 1. 환경 변수 및 Streamlit Secrets 조회
@@ -55,9 +39,6 @@ I18N = {
     "ko": {
         "title": "🧭 스마트 글로벌 트래블 매니저",
         "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·명소 원스톱 가이드",
-        "search_section": "🔍 여행지 탐색",
-        "region_domestic": "🇰🇷 국내 여행",
-        "region_overseas": "✈️ 해외 여행",
         "weather_tab": "🌤️ 현지 실시간 날씨",
         "fx_tab": "💱 전 세계 실시간 환율",
         "feels_like": "체감 온도",
@@ -68,7 +49,7 @@ I18N = {
         "tip_hot": "☀️ 무더운 날씨입니다. 충분한 수분을 섭취하세요.",
         "tip_cold": "🧣 쌀쌀한 날씨입니다. 따뜻한 외투를 준비하세요.",
         "tip_good": "🚶 야외 여행과 시내 투어를 즐기기에 쾌적한 날씨입니다.",
-        "calc_title": "💱 출발국 ⇄ 현지 통화 자동 환전 계산기",
+        "calc_title": "💱 출발국 ⇄ 현지 통화 자동 환전",
         "amt_label": "환전할 금액",
         "res_label": "환전 수령 예상 금액",
         "rate_label": "기준 환율",
@@ -85,9 +66,6 @@ I18N = {
     "en": {
         "title": "🧭 Smart Global Travel Manager",
         "subtitle": "Real-time location, weather, exchange rate & local spots guide worldwide",
-        "search_section": "🔍 Explore Destination",
-        "region_domestic": "🇰🇷 Korea (Domestic)",
-        "region_overseas": "✈️ Overseas (Global)",
         "weather_tab": "🌤️ Local Live Weather",
         "fx_tab": "💱 Global Live FX",
         "feels_like": "Feels Like",
@@ -115,9 +93,6 @@ I18N = {
     "ja": {
         "title": "🧭 スマートグローバルトラベルガイド",
         "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・観光地ワンストップガイド",
-        "search_section": "🔍 目的地を探す",
-        "region_domestic": "🇰🇷 韓国国内旅行",
-        "region_overseas": "✈️ 海外旅行",
         "weather_tab": "🌤️ 現地のリアルタイム天気",
         "fx_tab": "💱 世界為替レート計算機",
         "feels_like": "体感温度",
@@ -128,7 +103,7 @@ I18N = {
         "tip_hot": "☀️ 暑い日です。水分補給をしっかり行ってください。",
         "tip_cold": "🧣 肌寒い天気です。暖かい上着をご用意ください。",
         "tip_good": "🚶 散歩や市内観光に最適な快適な天気です。",
-        "calc_title": "💱 出発国 ⇄ 旅行先の自動為替計算",
+        "calc_title": "💱 自動為替計算",
         "amt_label": "換金する金額",
         "res_label": "受取予想金額",
         "rate_label": "基準為替レート",
@@ -145,9 +120,6 @@ I18N = {
     "zh": {
         "title": "🧭 智能全球旅行指南",
         "subtitle": "全球城市与韩国实时天气、汇率换算与旅游景点一站式向导",
-        "search_section": "🔍 探索目的地",
-        "region_domestic": "🇰🇷 韩国境内旅行",
-        "region_overseas": "✈️ 海外出境旅行",
         "weather_tab": "🌤️ 当地实时天气",
         "fx_tab": "💱 全球实时汇率",
         "feels_like": "体感温度",
@@ -158,7 +130,7 @@ I18N = {
         "tip_hot": "☀️ 天气炎热，请多补充水分。",
         "tip_cold": "🧣 天气较冷，请注意添衣保暖。",
         "tip_good": "🚶 天气舒适，非常适合漫步与户外游览。",
-        "calc_title": "💱 出发地 ⇄ 目的地实时汇率计算",
+        "calc_title": "💱 实时汇率计算",
         "amt_label": "兑换金额",
         "res_label": "预计兑换金额",
         "rate_label": "参考汇率",
@@ -175,9 +147,6 @@ I18N = {
     "fr": {
         "title": "🧭 Guide de Voyage Intelligent",
         "subtitle": "Météo en direct, taux de change et lieux incontournables dans le monde entier",
-        "search_section": "🔍 Explorer une Destination",
-        "region_domestic": "🇰🇷 Corée (Domestique)",
-        "region_overseas": "✈️ International",
         "weather_tab": "🌤️ Météo Locale en Direct",
         "fx_tab": "💱 Taux de Change Mondial",
         "feels_like": "Température ressentie",
@@ -188,7 +157,7 @@ I18N = {
         "tip_hot": "☀️ Temps chaud. Pensez à bien vous hydrater.",
         "tip_cold": "🧣 Temps frais. Prévoyez des vêtements chauds.",
         "tip_good": "🚶 Temps idéal pour les visites en plein air.",
-        "calc_title": "💱 Convertisseur de Devises Mondial",
+        "calc_title": "💱 Convertisseur de Devises",
         "amt_label": "Montant à convertir",
         "res_label": "Montant converti",
         "rate_label": "Taux de change",
@@ -205,9 +174,6 @@ I18N = {
     "vi": {
         "title": "🧭 Hướng Dẫn Du Lịch Toàn Cầu Thông Minh",
         "subtitle": "Thời tiết thực tế, tỷ giá tiền tệ toàn cầu và các điểm đến hàng đầu",
-        "search_section": "🔍 Khám phá Điểm đến",
-        "region_domestic": "🇰🇷 Du lịch Hàn Quốc",
-        "region_overseas": "✈️ Du lịch Quốc tế",
         "weather_tab": "🌤️ Thời Tiết Thực Tế",
         "fx_tab": "💱 Tỷ Giá Hối Đoái Toàn Cầu",
         "feels_like": "Nhiệt độ cảm nhận",
@@ -218,7 +184,7 @@ I18N = {
         "tip_hot": "☀️ Thời tiết nắng nóng. Hãy uống đủ nước.",
         "tip_cold": "🧣 Trời lạnh. Hãy mặc ấm.",
         "tip_good": "🚶 Thời tiết tuyệt vời cho các hoạt động ngoài trời.",
-        "calc_title": "💱 Quy đổi Tiền tệ Toàn cầu",
+        "calc_title": "💱 Quy đổi Tiền tệ",
         "amt_label": "Số tiền cần đổi",
         "res_label": "Số tiền quy đổi",
         "rate_label": "Tỷ giá tham khảo",
@@ -258,7 +224,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 고시인성 프리미엄 UI CSS (비침 없는 솔리드 화이트 카드)
+# 3. 고시인성 프리미엄 UI CSS
 # -----------------------------------------------------------------------------
 modern_clean_css = """
 <style>
@@ -392,7 +358,7 @@ modern_clean_css = """
 st.markdown(modern_clean_css, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 4. 전 세계 환율 피드 API (ExchangeRate-API 160개국 이상 환율 로드)
+# 4. 전 세계 환율 피드 API
 # -----------------------------------------------------------------------------
 @st.cache_data(ttl=1800)
 def get_global_exchange_rates(api_key: str):
@@ -422,7 +388,7 @@ priority_currencies = ["KRW", "USD", "JPY", "EUR", "CNY", "GBP", "VND", "THB", "
 all_supported_currencies = priority_currencies + sorted([k for k in rates_dict.keys() if k not in priority_currencies])
 
 # -----------------------------------------------------------------------------
-# 5. 검색 및 날씨 API 함수
+# 5. 검색 및 이미지 폴백 처리 함수
 # -----------------------------------------------------------------------------
 def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, center_lon: float = None, radius: int = None):
     url = "https://dapi.kakao.com/v2/local/search/keyword.json"
@@ -460,19 +426,43 @@ def search_global_place_osm(query: str):
         return None, f"해외 네트워크 오류: {e}"
 
 def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 3):
+    """카카오 이미지 검색 실패 시 Unsplash 고화질 여행지 뷰로 폴백 제공"""
     url = "https://dapi.kakao.com/v2/search/image"
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
-    params = {"query": f"{place_name} 여행 명소", "size": size, "sort": "accuracy"}
+    
+    # 정제된 검색 쿼리 (가괄호 및 국가명 제거하여 정확도 상승)
+    clean_query = place_name.split("(")[0].strip()
+    params = {"query": f"{clean_query} 랜드마크 풍경", "size": size, "sort": "accuracy"}
+    
     try:
-        res = requests.get(url, headers=headers, params=params, timeout=5)
+        res = requests.get(url, headers=headers, params=params, timeout=4)
         if res.status_code == 200:
             docs = res.json().get("documents", [])
             images = [doc["image_url"] for doc in docs if doc.get("image_url")]
             if images:
-                return images
+                return images[:size]
     except Exception:
         pass
-    return []
+    
+    # 2차 검색 시도 (영문 키워드 조합)
+    try:
+        params2 = {"query": f"{clean_query} travel landscape", "size": size}
+        res2 = requests.get(url, headers=headers, params=params2, timeout=4)
+        if res2.status_code == 200:
+            docs = res2.json().get("documents", [])
+            images = [doc["image_url"] for doc in docs if doc.get("image_url")]
+            if images:
+                return images[:size]
+    except Exception:
+        pass
+
+    # 최종 폴백: 언스플래시(Unsplash) 안정적인 여행지 샘플 이미지 반환
+    fallback_images = [
+        "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80"
+    ]
+    return fallback_images[:size]
 
 def get_nearby_places_by_category(category_code: str, lat: float, lon: float, kakao_key: str, radius: int = 2000):
     url = "https://dapi.kakao.com/v2/local/search/category.json"
@@ -507,7 +497,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6. 사이드바: 다국어 및 목적지 탐색
+# 6. 사이드바: 다국어 및 목적지 탐색 (통화 정보 포함)
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -687,7 +677,7 @@ if target_lat and target_lon:
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 7-1. [좌측] 인터랙티브 지도 (Folium 지원 시 휠 확대/축소 및 드래그 동작)
+    # 7-1. [좌측] 인터랙티브 지도
     with col_map:
         st.markdown("#### 🗺️ 인터랙티브 여행 지도")
         st.caption("💡 마우스 휠 스크롤 또는 좌측 상단 [+], [-] 버튼으로 자유롭게 확대/축소할 수 있습니다.")
@@ -702,7 +692,6 @@ if target_lat and target_lon:
             ).add_to(m)
             st_folium(m, width="100%", height=450, returned_objects=[])
         else:
-            # Folium 미설치 시 내장 맵으로 렌더링
             st.map([{"lat": target_lat, "lon": target_lon}], zoom=14)
 
         btn_col1, btn_col2 = st.columns(2)
@@ -720,7 +709,7 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 길찾기 (Google)", f"{google_map_link}&dirflg=d", width="stretch")
 
-    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 호환 환율 계산기
+    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 호환 환율 계산기 (글자 크기 및 레이아웃 최적화)
     with col_right:
         tab_weather, tab_fx_quick = st.tabs([t["weather_tab"], t["fx_tab"]])
 
@@ -768,19 +757,24 @@ if target_lat and target_lon:
                     st.success(t["tip_good"])
 
         with tab_fx_quick:
-            st.markdown(f"##### {t['calc_title']}")
+            # 🌟 레이아웃 및 폰트 크기 최적화로 찌그러짐 방지
+            st.markdown(f"<div style='font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
+            # 🌟 해외 선택 시 해당 국가 통화로 확실히 매칭되도록 보정
             target_to_currency = auto_currency if auto_currency in all_supported_currencies else ("USD" if is_overseas else "KRW")
-            to_default_idx = all_supported_currencies.index(target_to_currency)
+            try:
+                to_default_idx = all_supported_currencies.index(target_to_currency)
+            except ValueError:
+                to_default_idx = 0
 
             def format_currency_label(code):
                 return GLOBAL_CURRENCY_NAMES.get(code, f"{code} (전세계 공식 통화)")
 
             col_src, col_dst = st.columns(2)
             with col_src:
-                from_cur = st.selectbox("From (출발 통화)", all_supported_currencies, index=0, format_func=format_currency_label, key="quick_from_cur")
+                from_cur = st.selectbox("From (출발)", all_supported_currencies, index=0, format_func=format_currency_label, key="quick_from_cur")
             with col_dst:
-                to_cur = st.selectbox(f"To ({target_name} 현지 통화)", all_supported_currencies, index=to_default_idx, format_func=format_currency_label, key="quick_to_cur")
+                to_cur = st.selectbox("To (현지 통화)", all_supported_currencies, index=to_default_idx, format_func=format_currency_label, key="quick_to_cur")
 
             calc_amt = st.number_input(
                 f"{t['amt_label']} ({from_cur})", 
@@ -799,9 +793,9 @@ if target_lat and target_lon:
 
             st.markdown(f"""
             <div class="glass-metric-card" style="margin-top: 10px;">
-                <div style="font-size: 0.88rem; color: #64748b; font-weight: 700;">{t['res_label']} ({to_cur})</div>
-                <div style="font-size: 1.9rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
-                <div style="font-size: 0.85rem; color: #475569;">{t['rate_label']}: 1 {from_cur} = {exchange_rate:,.4f} {to_cur}</div>
+                <div style="font-size: 0.85rem; color: #64748b; font-weight: 700;">{t['res_label']} ({to_cur})</div>
+                <div style="font-size: 1.7rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
+                <div style="font-size: 0.82rem; color: #475569;">{t['rate_label']}: 1 {from_cur} = {exchange_rate:,.4f} {to_cur}</div>
             </div>
             """, unsafe_allow_html=True)
 
