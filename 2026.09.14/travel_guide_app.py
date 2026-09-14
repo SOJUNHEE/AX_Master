@@ -3,7 +3,23 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 import streamlit as st
-from streamlit_geolocation import streamlit_geolocation
+
+# -----------------------------------------------------------------------------
+# 0. 선택적 라이브러리 안전 임포트 (클라우드 환경 모듈 누락 방어)
+# -----------------------------------------------------------------------------
+try:
+    from streamlit_geolocation import streamlit_geolocation
+    HAS_GEO = True
+except (ImportError, ModuleNotFoundError):
+    HAS_GEO = False
+    streamlit_geolocation = None
+
+try:
+    import folium
+    from streamlit_folium import st_folium
+    HAS_FOLIUM = True
+except (ImportError, ModuleNotFoundError):
+    HAS_FOLIUM = False
 
 # -----------------------------------------------------------------------------
 # 1. 환경 변수 및 Streamlit Secrets 조회
@@ -426,11 +442,8 @@ def search_global_place_osm(query: str):
         return None, f"해외 네트워크 오류: {e}"
 
 def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 3):
-    """카카오 이미지 검색 실패 시 Unsplash 고화질 여행지 뷰로 폴백 제공"""
     url = "https://dapi.kakao.com/v2/search/image"
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
-    
-    # 정제된 검색 쿼리 (가괄호 및 국가명 제거하여 정확도 상승)
     clean_query = place_name.split("(")[0].strip()
     params = {"query": f"{clean_query} 랜드마크 풍경", "size": size, "sort": "accuracy"}
     
@@ -444,7 +457,6 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     except Exception:
         pass
     
-    # 2차 검색 시도 (영문 키워드 조합)
     try:
         params2 = {"query": f"{clean_query} travel landscape", "size": size}
         res2 = requests.get(url, headers=headers, params=params2, timeout=4)
@@ -456,7 +468,6 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     except Exception:
         pass
 
-    # 최종 폴백: 언스플래시(Unsplash) 안정적인 여행지 샘플 이미지 반환
     fallback_images = [
         "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1503220317375-aaad61436b1b?auto=format&fit=crop&w=800&q=80",
@@ -497,7 +508,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6. 사이드바: 다국어 및 목적지 탐색 (통화 정보 포함)
+# 6. 사이드바: 다국어 및 목적지 탐색
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -709,7 +720,7 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 길찾기 (Google)", f"{google_map_link}&dirflg=d", width="stretch")
 
-    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 호환 환율 계산기 (글자 크기 및 레이아웃 최적화)
+    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 호환 환율 계산기
     with col_right:
         tab_weather, tab_fx_quick = st.tabs([t["weather_tab"], t["fx_tab"]])
 
@@ -757,10 +768,12 @@ if target_lat and target_lon:
                     st.success(t["tip_good"])
 
         with tab_fx_quick:
-            # 🌟 레이아웃 및 폰트 크기 최적화로 찌그러짐 방지
-            st.markdown(f"<div style='font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
-            # 🌟 해외 선택 시 해당 국가 통화로 확실히 매칭되도록 보정
+            if is_overseas and region_type == "✈️ 해외 여행" and global_mode == "해외 인기 명소":
+                overseas_presets = {k: v for k, v in preset_places.items() if v["is_overseas"]}
+                auto_currency = overseas_presets.get(target_name, {}).get("currency", "USD")
+
             target_to_currency = auto_currency if auto_currency in all_supported_currencies else ("USD" if is_overseas else "KRW")
             try:
                 to_default_idx = all_supported_currencies.index(target_to_currency)
@@ -772,9 +785,9 @@ if target_lat and target_lon:
 
             col_src, col_dst = st.columns(2)
             with col_src:
-                from_cur = st.selectbox("From (출발)", all_supported_currencies, index=0, format_func=format_currency_label, key="quick_from_cur")
+                from_cur = st.selectbox("From", all_supported_currencies, index=0, format_func=format_currency_label, key="quick_from_cur")
             with col_dst:
-                to_cur = st.selectbox("To (현지 통화)", all_supported_currencies, index=to_default_idx, format_func=format_currency_label, key="quick_to_cur")
+                to_cur = st.selectbox("To (현지)", all_supported_currencies, index=to_default_idx, format_func=format_currency_label, key="quick_to_cur")
 
             calc_amt = st.number_input(
                 f"{t['amt_label']} ({from_cur})", 
@@ -794,7 +807,7 @@ if target_lat and target_lon:
             st.markdown(f"""
             <div class="glass-metric-card" style="margin-top: 10px;">
                 <div style="font-size: 0.85rem; color: #64748b; font-weight: 700;">{t['res_label']} ({to_cur})</div>
-                <div style="font-size: 1.7rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
                 <div style="font-size: 0.82rem; color: #475569;">{t['rate_label']}: 1 {from_cur} = {exchange_rate:,.4f} {to_cur}</div>
             </div>
             """, unsafe_allow_html=True)
