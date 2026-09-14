@@ -1,19 +1,12 @@
 import os
-import base64
 from pathlib import Path
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import requests
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from streamlit_geolocation import streamlit_geolocation
 
 # -----------------------------------------------------------------------------
-# 1. 환경 변수 및 Streamlit Secrets 조회 함수 (Line 18 ~ Line 42)
+# 1. 환경 변수 및 Streamlit Secrets 조회
 # -----------------------------------------------------------------------------
 ROOT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT_DIR / ".env", override=True)
@@ -33,14 +26,14 @@ KAKAO_REST_KEY = get_secret_key("KAKAO_MAP_KEY")
 WEATHER_KEY = get_secret_key("OPENWEATHER_API_KEY")
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
 
-st.set_page_config(page_title="여행 가이드 & 외환 인텔리전스", page_icon="🗺️", layout="wide")
+st.set_page_config(page_title="여행 가이드 & 스마트 여행 비서", page_icon="🗺️", layout="wide")
 
 if not KAKAO_REST_KEY:
     st.error("⚠️ `KAKAO_MAP_KEY` (카카오 REST API 키)를 설정해주세요.")
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 환율 데이터 및 통화 메타데이터 (Line 44 ~ Line 98)
+# 2. 환율 데이터 로드 (간편 계산기용)
 # -----------------------------------------------------------------------------
 CURRENCY_INFO = {
     "USD": {"name": "미국 달러화", "flag": "🇺🇸", "symbol": "$", "unit": 1},
@@ -78,28 +71,8 @@ fallback_rates = {
 }
 rates_dict = live_rates if (live_rates and isinstance(live_rates, dict)) else fallback_rates
 
-# 🌟 개별 통화 상세 팝업 계산기 (Dialog)
-@st.dialog("🧮 개별 통화 상세 계산기")
-def open_currency_calculator(cur_code, info, rates_map):
-    st.markdown(f"### {info['flag']} **{cur_code} ({info['name']})** 환산 스튜디오")
-    krw_per_usd = rates_map.get("KRW", 1380.0)
-    cur_per_usd = rates_map.get(cur_code, 1.0)
-    rate_krw_per_cur = (krw_per_usd / cur_per_usd) * info["unit"]
-    
-    t_fwd, t_rev = st.tabs(["원화 ➔ 외화", f"{cur_code} ➔ 원화"])
-    with t_fwd:
-        amt_krw = st.number_input("원화 금액 (KRW)", min_value=0.0, value=100000.0, step=10000.0, key=f"popup_krw_{cur_code}")
-        res_cur = amt_krw / rate_krw_per_cur if rate_krw_per_cur > 0 else 0
-        st.metric("환산 결과", f"{info['symbol']} {res_cur:,.2f}", f"적용 환율: ₩{rate_krw_per_cur:,.2f}")
-    with t_rev:
-        amt_cur = st.number_input(f"{cur_code} 금액", min_value=0.0, value=100.0 if info['unit']==1 else 10000.0, step=10.0, key=f"popup_cur_{cur_code}")
-        res_krw = amt_cur * rate_krw_per_cur
-        st.metric("환산 결과", f"₩ {res_krw:,.2f}", f"적용 환율: ₩{rate_krw_per_cur:,.2f}")
-    if st.button("닫기", width="stretch"):
-        st.rerun()
-
 # -----------------------------------------------------------------------------
-# 3. 카카오 및 날씨 API 함수 (Line 100 ~ Line 148)
+# 3. 카카오 REST API 및 날씨 API 함수
 # -----------------------------------------------------------------------------
 def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, center_lon: float = None, radius: int = None):
     url = "https://dapi.kakao.com/v2/local/search/keyword.json"
@@ -118,10 +91,31 @@ def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, c
     except Exception as e:
         return None, f"네트워크 오류: {e}"
 
+def get_kakao_place_images(query: str, kakao_key: str, size: int = 3):
+    """카카오 Daum 이미지 검색 REST API를 이용해 장소 실사진을 가져옵니다."""
+    url = "https://dapi.kakao.com/v2/search/image"
+    headers = {"Authorization": f"KakaoAK {kakao_key}"}
+    params = {"query": query, "size": size, "sort": "accuracy"}
+    try:
+        res = requests.get(url, headers=headers, params=params, timeout=5)
+        if res.status_code == 200:
+            docs = res.json().get("documents", [])
+            return [doc["image_url"] for doc in docs if doc.get("image_url")]
+        return []
+    except Exception:
+        return []
+
 def get_nearby_places_by_category(category_code: str, lat: float, lon: float, kakao_key: str, radius: int = 2000):
     url = "https://dapi.kakao.com/v2/local/search/category.json"
     headers = {"Authorization": f"KakaoAK {kakao_key}"}
-    params = {"category_group_code": category_code, "x": str(lon), "y": str(lat), "radius": str(radius), "sort": "distance", "size": 5}
+    params = {
+        "category_group_code": category_code,
+        "x": str(lon),
+        "y": str(lat),
+        "radius": str(radius),
+        "sort": "distance",
+        "size": 5
+    }
     try:
         res = requests.get(url, headers=headers, params=params, timeout=5)
         if res.status_code == 200:
@@ -144,7 +138,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str):
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 4. 사이드바: 3가지 탐색 모드 (Line 150 ~ Line 235)
+# 4. 사이드바: 3가지 장소 탐색 모드
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021"},
@@ -231,35 +225,76 @@ with st.sidebar:
                 st.warning(f"반경 {search_radius}m 내에 '{search_query}' 검색 결과가 없습니다.")
 
 # -----------------------------------------------------------------------------
-# 5. 본문 메인 레이아웃: [지도] vs [우측 탭: 날씨 & 간편 환전기] (Line 237 ~ Line 335)
+# 5. 본문 메인 레이아웃
 # -----------------------------------------------------------------------------
-st.title("🗺️ 여행 가이드 & 💱 외환 대시보드")
+st.title("🗺️ 여행 가이드 & 스마트 여행 비서")
 
 if target_lat and target_lon:
-    st.subheader(f"🚩 선택 장소: **{target_name}**")
+    st.subheader(f"🚩 **{target_name}**")
     if target_addr:
         st.caption(f"📍 위치: {target_addr}")
 
+    # 🌟 신규 추가: 선택한 명소 실사진 갤러리 렌더링
+    with st.spinner(f"'{target_name}' 관련 사진을 불러오는 중..."):
+        place_images = get_kakao_place_images(target_name, KAKAO_REST_KEY, size=3)
+
+    if place_images:
+        img_cols = st.columns(len(place_images))
+        for idx, img_url in enumerate(place_images):
+            with img_cols[idx]:
+                st.image(img_url, width="stretch", caption=f"{target_name} 풍경 {idx+1}")
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 5-1. [좌측] 카카오 정적 지도
+    # 5-1. [좌측] 카카오 정적 지도 및 줌 컨트롤러
     with col_map:
         st.markdown("#### 🗺️ 카카오 지도")
+
+        if "map_zoom_level" not in st.session_state:
+            st.session_state.map_zoom_level = 3
+
+        zoom_col1, zoom_col2, zoom_col3 = st.columns([1, 1, 3])
+        with zoom_col1:
+            if st.button("➕ 확대", key="zoom_in_btn", width="stretch"):
+                if st.session_state.map_zoom_level > 1:
+                    st.session_state.map_zoom_level -= 1
+                    st.rerun()
+        with zoom_col2:
+            if st.button("➖ 축소", key="zoom_out_btn", width="stretch"):
+                if st.session_state.map_zoom_level < 14:
+                    st.session_state.map_zoom_level += 1
+                    st.rerun()
+        with zoom_col3:
+            selected_zoom = st.slider(
+                "지도 줌 레벨",
+                min_value=1,
+                max_value=14,
+                value=st.session_state.map_zoom_level,
+                key="zoom_slider",
+                label_visibility="collapsed"
+            )
+            st.session_state.map_zoom_level = selected_zoom
+
         marker_param = f"type:default|lat:{target_lat},lon:{target_lon}|text:{target_name}"
-        static_map_url = "https://dapi.kakao.com/v2/maps/staticmap"
+        static_map_url = "https://dapi.kakao.com/v2/maps/staticmap"[cite: 1]
         map_params = {
-            "center": f"{target_lon},{target_lat}",
-            "level": 3,
+            "center": f"{target_lon},{target_lat}",[cite: 1]
+            "level": st.session_state.map_zoom_level,
             "size": "700x450",
             "markers": [marker_param],
         }
-        headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
-        map_res = requests.get(static_map_url, headers=headers, params=map_params)
+        headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}[cite: 1]
+        map_res = requests.get(static_map_url, headers=headers, params=map_params)[cite: 1]
 
-        if map_res.status_code == 200:
-            st.image(map_res.content, width="stretch", caption=f"{target_name} 카카오 지도")
+        if map_res.status_code == 200:[cite: 1]
+            st.image(
+                map_res.content,
+                width="stretch",
+                caption=f"{target_name} 카카오 지도 (확대 레벨: {st.session_state.map_zoom_level})"
+            )
         else:
-            st.error(f"지도 렌더링 실패 ({map_res.status_code}): {map_res.text}")
+            st.error(f"지도 렌더링 실패 ({map_res.status_code}): {map_res.text}")[cite: 1]
 
         btn_col1, btn_col2 = st.columns(2)
         kakao_link = target_url if target_url else f"https://map.kakao.com/link/map/{target_name},{target_lat},{target_lon}"
@@ -270,9 +305,9 @@ if target_lat and target_lon:
         with btn_col2:
             st.link_button("🚗 카카오맵 길찾기", route_link, width="stretch")
 
-    # 5-2. [우측] 탭 구조 (실시간 날씨 vs 여행 경비 환율 계산)
+    # 5-2. [우측] 탭 구조 (실시간 날씨 & 맞춤 환율 계산기)
     with col_right:
-        tab_weather, tab_fx_quick = st.tabs(["🌤️ 현지 실시간 날씨", "💱 실시간 환율"])
+        tab_weather, tab_fx_quick = st.tabs(["🌤️ 현지 실시간 날씨", "💱 맞춤 환율 계산기"])
 
         with tab_weather:
             w_data, w_err = get_weather_by_coords(target_lat, target_lon, WEATHER_KEY)
@@ -312,29 +347,45 @@ if target_lat and target_lon:
                     st.success("🚶 야외 활동을 즐기기에 쾌적한 날씨입니다.")
 
         with tab_fx_quick:
-            st.markdown("##### 💱 주요 통화 즉시 환전 (KRW 기준)")
+            st.markdown("##### 💱 출발국 ⇄ 여행지 맞춤 환율 계산")
+            curr_keys = list(CURRENCY_INFO.keys())
+            all_currs = ["KRW"] + [k for k in curr_keys if k != "KRW"]
+
+            col_src, col_dst = st.columns(2)
+            with col_src:
+                from_cur = st.selectbox("출발 국가 통화 (기준)", all_currs, index=0, key="quick_from_cur")
+            with col_dst:
+                to_cur = st.selectbox("여행지 통화 (대상)", all_currs, index=all_currs.index("JPY") if "JPY" in all_currs else 1, key="quick_to_cur")
+
+            calc_amt = st.number_input(
+                f"환전할 금액 ({from_cur})", 
+                min_value=0.0, 
+                value=0.0, 
+                step=1000.0, 
+                format="%.2f",
+                key="quick_amt_input"
+            )
+
             krw_base = rates_dict.get("KRW", 1380.0)
+            from_rate_usd = 1.0 if from_cur == "USD" else (krw_base if from_cur == "KRW" else rates_dict.get(from_cur, 1.0))
+            to_rate_usd = 1.0 if to_cur == "USD" else (krw_base if to_cur == "KRW" else rates_dict.get(to_cur, 1.0))
+
+            exchange_rate = to_rate_usd / from_rate_usd if from_rate_usd > 0 else 0
+            converted_result = calc_amt * exchange_rate
+
+            dst_symbol = CURRENCY_INFO.get(to_cur, {}).get("symbol", "₩" if to_cur == "KRW" else "")
             
-            c_input, c_sel = st.columns([1.5, 1])
-            with c_input:
-                calc_amt = st.number_input("원화(KRW) 입력", value=100000.0, step=50000.0)
-            with c_sel:
-                calc_cur = st.selectbox("통화 선택", ["USD", "JPY", "EUR", "CNY", "VND"])
-
-            info = CURRENCY_INFO[calc_cur]
-            cur_usd = rates_dict.get(calc_cur, 1.0)
-            rate_per_unit = (krw_base / cur_usd) * (1 / info["unit"])
-            res_val = calc_amt / ((krw_base / cur_usd) * info["unit"])
-
             with st.container(border=True):
                 st.metric(
-                    label=f"{info['flag']} {calc_cur} 환산 금액",
-                    value=f"{info['symbol']} {res_val:,.2f}",
-                    delta=f"1 {calc_cur} = ₩{rate_per_unit:,.2f}"
+                    label=f"환전 수령 금액 ({to_cur})",
+                    value=f"{dst_symbol} {converted_result:,.2f}",
+                    delta=f"1 {from_cur} = {exchange_rate:,.4f} {to_cur}"
                 )
+                if calc_amt == 0:
+                    st.caption("💡 금액을 입력하면 실시간으로 환전 금액이 계산됩니다.")
 
     # -------------------------------------------------------------------------
-    # 6. 주변 추천 맛집 및 관광 명소 섹션 (Line 337 ~ Line 392)
+    # 6. 주변 추천 맛집 및 관광 명소 섹션
     # -------------------------------------------------------------------------
     st.divider()
     st.markdown(f"### 🍽️ **{target_name}** 주변 맛집 & 📸 추천 관광지")
@@ -364,7 +415,7 @@ if target_lat and target_lon:
                     with t_col1:
                         st.markdown(f"**{item['place_name']}**")
                         st.caption(f"📍 {item.get('road_address_name') or item.get('address_name')} (거리: 약 {item.get('distance')}m)")
-                    with t_col2:
+                    with f_col2:
                         st.link_button("상세보기", item["place_url"], width="stretch")
         else:
             st.info("반경 3km 이내에 등록된 관광 명소 정보가 없습니다.")
@@ -381,73 +432,6 @@ if target_lat and target_lon:
             st.link_button("🔵 구글 맛집/여행 검색", google_search_url, width="stretch")
         with sc3:
             st.link_button("🟡 다음 블로그 리뷰 보기", kakao_blog_url, width="stretch")
-
-    # -------------------------------------------------------------------------
-    # 7. app_2.py 결합 섹션: 글로벌 외환 카드 & 밸류에이션 진단 (Line 394 ~ Line 520)
-    # -------------------------------------------------------------------------
-    st.divider()
-    st.markdown("### 💱 글로벌 외환 인텔리전스 & 전세계 환율 스튜디오")
-    st.caption("해외 여행 및 대외 거래를 위한 실시간 환율 현황판과 역사적 밸류에이션 분석입니다.")
-
-    # 7-1. 카드 그리드
-    grid_cols = st.columns(3, gap="medium")
-    krw_rate_base = rates_dict.get("KRW", 1380.0)
-    card_idx = 0
-
-    for cur_code, info in CURRENCY_INFO.items():
-        cur_usd_rate = rates_dict.get(cur_code, 1.0)
-        rate_per_krw = (cur_usd_rate / krw_rate_base) * info["unit"]
-        reverse_rate = (krw_rate_base / cur_usd_rate) / info["unit"]
-
-        target_col = grid_cols[card_idx % 3]
-        with target_col:
-            with st.container(border=True):
-                st.markdown(f"#### {info['flag']} {cur_code} ({info['name']})")
-                st.metric("1 단위 당 원화 환율", f"₩ {reverse_rate:,.2f}")
-                st.caption(f"1 KRW = {rate_per_krw:,.4f} {cur_code}")
-                if st.button(f"🧮 {cur_code} 계산기 열기", key=f"btn_calc_{cur_code}", width="stretch"):
-                    open_currency_calculator(cur_code, info, rates_dict)
-        card_idx += 1
-
-    # 7-2. 시계열 밸류에이션 진단
-    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    st.subheader("📈 외환 밸류에이션 진단 차트")
-    
-    target_currency = st.selectbox(
-        "분석 대상 통화 선택",
-        options=list(CURRENCY_INFO.keys()),
-        index=0,
-        format_func=lambda x: f"{CURRENCY_INFO[x]['flag']} {x} ({CURRENCY_INFO[x]['name']})"
-    )
-
-    unit = CURRENCY_INFO[target_currency]["unit"]
-    cur_to_usd = rates_dict.get(target_currency, 1.0)
-    usd_to_krw = rates_dict.get("KRW", 1380.0)
-    current_krw_rate = (usd_to_krw / cur_to_usd) * unit
-
-    np.random.seed(hash(target_currency) % 500)
-    today = datetime.now()
-    dates = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(30, 0, -1)]
-    daily_walk = np.cumsum(np.random.normal(0, current_krw_rate * 0.005, 30))
-    daily_rates = [round(current_krw_rate + w - daily_walk[-1], 2) for w in daily_walk]
-    df_daily = pd.DataFrame({"Date": dates, "Rate": daily_rates})
-    df_daily["Change_Pct"] = df_daily["Rate"].pct_change().fillna(0) * 100
-
-    fig_time = make_subplots(specs=[[{"secondary_y": True}]])
-    fig_time.add_trace(
-        go.Scatter(x=df_daily["Date"], y=df_daily["Rate"], mode="lines+markers", name="일별 환율 (KRW)", line=dict(color="#2563eb", width=2.5)),
-        secondary_y=False
-    )
-    fig_time.add_trace(
-        go.Bar(x=df_daily["Date"], y=df_daily["Change_Pct"], name="등락률 (%)", marker_color=np.where(df_daily["Change_Pct"] >= 0, '#ef4444', '#3b82f6'), opacity=0.45),
-        secondary_y=True
-    )
-    fig_time.update_layout(
-        title=f"{target_currency}/KRW 최근 30영업일간 일별 환율 및 등락률(%)",
-        height=330, margin=dict(l=10, r=10, t=40, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    st.plotly_chart(fig_time, width="stretch")
 
 else:
     st.info("👈 왼쪽 사이드바에서 원하는 방식을 선택해 장소를 탐색해 보세요.")
