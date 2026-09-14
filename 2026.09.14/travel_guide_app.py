@@ -23,7 +23,6 @@ try:
 except (ImportError, ModuleNotFoundError):
     HAS_FOLIUM = False
 
-# ReportLab을 이용한 PDF 생성 기능 (설치되어 있지 않은 경우 안내 문구 표시)
 try:
     from reportlab.lib.pagesizes import letter
     from reportlab.pdfgen import canvas
@@ -53,11 +52,11 @@ def get_secret_key(key_name: str):
 KAKAO_REST_KEY = get_secret_key("KAKAO_MAP_KEY")
 WEATHER_KEY = get_secret_key("OPENWEATHER_API_KEY")
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
-GEMINI_API_KEY = get_secret_key("GEMINI_API_KEY") # AI 경로 추천을 위한 API Key
+GEMINI_API_KEY = get_secret_key("GEMINI_API_KEY")
 
 st.set_page_config(
-    page_title="티베트여우의 스마트 글로벌 트래블 매니저 🦊",
-    page_icon="🦊",
+    page_title="스마트 글로벌 트래블 매니저",
+    page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -67,11 +66,11 @@ if not KAKAO_REST_KEY:
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 다국어(i18n) 및 티베트여우 감성 메타데이터
+# 2. 다국어(i18n) 메타데이터
 # -----------------------------------------------------------------------------
 I18N = {
     "ko": {
-        "title": "🧭 스마트 글로벌 트래블 매니저 🦊",
+        "title": "🧭 스마트 글로벌 트래블 매니저",
         "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·항공권·AI 여행 코스 원스톱 가이드",
         "weather_tab": "🌤️ 현지 실시간 날씨",
         "fx_tab": "💱 실시간 환율 & 항공권",
@@ -79,11 +78,11 @@ I18N = {
         "feels_like": "체감 온도",
         "humidity": "습도",
         "wind": "풍속",
-        "travel_tip": "💡 🦊 티베트여우의 오늘의 여행 팁",
-        "tip_rain": "☔ 비 예보가 있어요! 듬직한 우산을 꼭 챙기세요.",
-        "tip_hot": "☀️ 날씨가 많이 더워요! 시원한 음료로 수분을 충전해 주세요.",
-        "tip_cold": "🧣 쌀쌀한 날씨예요. 따뜻한 외투를 입고 외출하세요!",
-        "tip_good": "🚶 산책하고 구경하기 너무 좋은 쾌적한 날씨예요!",
+        "travel_tip": "💡 오늘의 여행 팁",
+        "tip_rain": "☔ 비 예보가 있습니다. 우산을 꼭 챙기세요.",
+        "tip_hot": "☀️ 날씨가 많이 더우니 충분한 수분을 섭취하세요.",
+        "tip_cold": "🧣 쌀쌀한 날씨입니다. 따뜻한 외투를 준비하세요.",
+        "tip_good": "🚶 야외 활동과 산책을 즐기기 쾌적한 날씨입니다.",
         "calc_title": "💱 출발국 ⇄ 현지 통화 스마트 환전 계산",
         "amt_label": "환전할 금액",
         "res_label": "환전 수령 예상 금액",
@@ -100,7 +99,7 @@ I18N = {
         "naver_blog": "🟢 네이버 여행기 검색"
     },
     "en": {
-        "title": "🧭 Smart Global Travel Manager 🦊",
+        "title": "🧭 Smart Global Travel Manager",
         "subtitle": "Real-time location, weather, exchange rate, flights & AI itinerary guide worldwide",
         "weather_tab": "🌤️ Live Weather",
         "fx_tab": "💱 Live FX & Flights",
@@ -108,8 +107,8 @@ I18N = {
         "feels_like": "Feels Like",
         "humidity": "Humidity",
         "wind": "Wind Speed",
-        "travel_tip": "💡 🦊 Tibetan Fox's Travel Tip",
-        "tip_rain": "☔ Rain expected. Don't forget your umbrella!",
+        "travel_tip": "💡 Travel Tip",
+        "tip_rain": "☔ Rain expected. Don't forget your umbrella.",
         "tip_hot": "☀️ Very warm. Stay hydrated while exploring.",
         "tip_cold": "🧣 Chilly weather. Dress warmly.",
         "tip_good": "🚶 Perfect weather for walking and sightseeing.",
@@ -129,7 +128,7 @@ I18N = {
         "naver_blog": "🟢 Travel Blog Reviews"
     },
     "ja": {
-        "title": "🧭 スマートグローバルトラベルガイド 🦊",
+        "title": "🧭 スマートグローバルトラベルガイド",
         "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・航空券・AI旅行コースワンストップガイド",
         "weather_tab": "🌤️ 現地のリアルタイム天気",
         "fx_tab": "💱 為替レート & 航空券",
@@ -137,11 +136,11 @@ I18N = {
         "feels_like": "体感温度",
         "humidity": "湿度",
         "wind": "風速",
-        "travel_tip": "💡 🦊 チベットスナギツネのアドバイス",
+        "travel_tip": "💡 おすすめアドバイス",
         "tip_rain": "☔ 雨の予報です。折りたたみ傘をお持ちください。",
         "tip_hot": "☀️ 暑い日です。水分補給をしっかり行ってください。",
         "tip_cold": "🧣 肌寒い天気です。暖かい上着をご用意ください。",
-        "tip_good": "🚶 お散歩や観光に最適な快適な天気です！",
+        "tip_good": "🚶 お散歩や観光に最適な快適な天気です。",
         "calc_title": "💱 自動為替計算",
         "amt_label": "換金する金額",
         "res_label": "受取予想金額",
@@ -167,7 +166,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 🦊 티베트여우 감성 무드 + 고시인성 스타일 CSS
+# 3. 모던하고 깔끔한 여행 가이드 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -175,7 +174,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
 
     .stApp {
-        background: linear-gradient(135deg, #fcfaf8 0%, #f4f4f6 100%) !important;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
@@ -183,32 +182,32 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', 'Pretendard', sans-serif !important;
         font-size: 2.2rem !important;
         font-weight: 800 !important;
-        color: #1c1917 !important;
+        color: #0f172a !important;
         letter-spacing: -0.03em;
         margin-bottom: 0.3rem !important;
     }
     .main-header-sub {
         font-size: 0.98rem !important;
-        color: #57534e !important;
+        color: #475569 !important;
         margin-bottom: 1.5rem !important;
         font-weight: 500;
     }
 
     section[data-testid="stSidebar"] {
         background-color: #ffffff !important;
-        border-right: 1.5px solid #e7e5e4 !important;
-        box-shadow: 4px 0 20px rgba(231, 229, 228, 0.5);
+        border-right: 1.5px solid #e2e8f0 !important;
+        box-shadow: 4px 0 20px rgba(226, 232, 240, 0.5);
     }
     section[data-testid="stSidebar"] * {
-        color: #1c1917 !important;
+        color: #0f172a !important;
     }
 
     .target-banner-card {
-        background: linear-gradient(135deg, #292524 10%, #1c1917 100%);
+        background: linear-gradient(135deg, #1e293b 10%, #0f172a 100%);
         border-radius: 18px;
         padding: 22px 28px;
         color: #ffffff !important;
-        box-shadow: 0 10px 25px -5px rgba(28, 25, 23, 0.2);
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
         margin-bottom: 20px;
     }
     .target-banner-name {
@@ -219,7 +218,7 @@ st.markdown("""
     }
     .target-banner-addr {
         font-size: 0.95rem !important;
-        color: #d6d3d1 !important;
+        color: #94a3b8 !important;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -230,38 +229,38 @@ st.markdown("""
         width: 100% !important;
         object-fit: cover !important;
         border-radius: 16px !important;
-        box-shadow: 0 6px 16px rgba(168, 162, 158, 0.2) !important;
+        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.2) !important;
         border: 2px solid #ffffff;
     }
 
     [data-testid="stImageCaption"] {
         font-size: 0.92rem !important;
         font-weight: 700 !important;
-        color: #292524 !important;
+        color: #1e293b !important;
         text-align: center !important;
         margin-top: 8px !important;
     }
 
     .premium-card {
         background: #ffffff !important;
-        border: 1px solid #e7e5e4 !important;
+        border: 1px solid #e2e8f0 !important;
         border-radius: 16px !important;
         padding: 18px 22px !important;
         margin-bottom: 14px !important;
-        box-shadow: 0 4px 12px rgba(231, 229, 228, 0.6) !important;
+        box-shadow: 0 4px 12px rgba(226, 232, 240, 0.6) !important;
     }
     .place-name-text {
         font-size: 1.18rem !important;
         font-weight: 800 !important;
-        color: #1c1917 !important;
+        color: #0f172a !important;
     }
     .badge-tag {
         display: inline-block;
         font-size: 0.8rem !important;
         font-weight: 700 !important;
-        color: #b45309 !important;
-        background: #fef3c7 !important;
-        border: 1px solid #fde68a !important;
+        color: #2563eb !important;
+        background: #eff6ff !important;
+        border: 1px solid #dbeafe !important;
         padding: 3px 10px;
         border-radius: 9999px;
         margin-left: 8px;
@@ -271,16 +270,16 @@ st.markdown("""
         display: inline-block;
         font-size: 0.8rem !important;
         font-weight: 700 !important;
-        color: #c2410c !important;
-        background: #ffedd5 !important;
-        border: 1px solid #fed7aa !important;
+        color: #ea580c !important;
+        background: #fff7ed !important;
+        border: 1px solid #ffedd5 !important;
         padding: 3px 9px;
         border-radius: 6px;
         margin-left: 6px;
     }
     .place-addr-text {
         font-size: 0.92rem !important;
-        color: #57534e !important;
+        color: #475569 !important;
         margin-top: 8px !important;
         line-height: 1.4;
     }
@@ -288,30 +287,30 @@ st.markdown("""
     .glass-metric-card {
         background: rgba(255, 255, 255, 0.9) !important;
         backdrop-filter: blur(8px);
-        border: 1.5px solid #e7e5e4 !important;
+        border: 1.5px solid #e2e8f0 !important;
         border-radius: 16px !important;
         padding: 20px !important;
-        box-shadow: 0 4px 15px rgba(231, 229, 228, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
     }
 
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #f5f5f4 !important;
+        background-color: #f1f5f9 !important;
         border-radius: 14px !important;
         padding: 6px !important;
         gap: 6px !important;
-        border: 1px solid #e7e5e4 !important;
+        border: 1px solid #e2e8f0 !important;
     }
     .stTabs [data-baseweb="tab"] {
         font-size: 0.98rem !important;
         font-weight: 700 !important;
-        color: #78716c !important;
+        color: #64748b !important;
         border-radius: 10px !important;
         padding: 8px 18px !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #ffffff !important;
-        color: #1c1917 !important;
-        box-shadow: 0 4px 10px rgba(28, 25, 23, 0.08) !important;
+        color: #0f172a !important;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -516,10 +515,9 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6-1. Open API (Gemini 또는 외부 엔드포인트)를 통한 AI 여행 경로 생성 함수
+# 6-1. AI 여행 경로 생성 함수
 # -----------------------------------------------------------------------------
 def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
-    # Gemini API Key가 설정되어 있는 경우 실제 요청 수행
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
     if api_key:
         try:
@@ -535,11 +533,10 @@ def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
         except Exception:
             pass
 
-    # API 키가 없거나 통신 실패 시 제공하는 고품질 스마트 시뮬레이션 일정
     return f"""
-### 🦊 텐더한 티베트여우의 [{dest_name}] {days}일 맞춤 [{style}] 추천 코스
+### 스마트 맞춤형 [{dest_name}] {days}일 [{style}] 추천 코스
 
-#### [ Day 1: 감성 첫째 날 탐방 ]
+#### [ Day 1: 핵심 명소 탐방 ]
 - **09:30 ~ 11:30** | {dest_name} 중심가 도착 및 랜드마크 스냅 사진 촬영
 - **12:00 ~ 13:30** | 현지 인기 로컬 맛집에서 대표 미식 체험
 - **14:00 ~ 17:00** | 역사와 문화가 숨쉬는 핵심 박물관 또는 전통 거리 산책
@@ -551,7 +548,7 @@ def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
 - **15:00 ~ 18:00** | 기념품 쇼핑 및 트렌디한 편집샵 탐방
 - **19:00 ~** | 여행의 피로를 녹여줄 아늑한 바 또는 휴식 시간
 
-*(💡 팁: 해당 일정은 티베트여우 매니저가 엄선한 베스트 코스이며, 현지 상황에 맞춰 유연하게 조정해 보세요!)*
+*(💡 안내: 현지 상황에 맞춰 유연하게 일정에 변화를 주어 더욱 풍성한 여행을 즐겨보세요!)*
 """
 
 # -----------------------------------------------------------------------------
@@ -565,9 +562,7 @@ def create_travel_pdf(dest_name: str, itinerary_text: str):
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
-    # 폰트 등록 (기본 기본 폰트 또는 시스템 한글 폰트 적용)
     try:
-        # 윈도우 환경 기본 한글 폰트 경로 시도
         font_path = "C:/Windows/Fonts/malgun.ttf"
         if os.path.exists(font_path):
             pdfmetrics.registerFont(TTFont('Malgun', font_path))
@@ -577,7 +572,6 @@ def create_travel_pdf(dest_name: str, itinerary_text: str):
     except Exception:
         c.setFont('Helvetica-Bold', 16)
 
-    # PDF 내용 작성
     c.drawString(50, height - 50, f"Smart Travel Manager - Itinerary Report")
     c.setFont('Malgun', 12) if 'Malgun' in pdfmetrics.getRegisteredFonts() else c.setFont('Helvetica', 12)
     c.drawString(50, height - 80, f"Destination: {dest_name}")
@@ -586,9 +580,7 @@ def create_travel_pdf(dest_name: str, itinerary_text: str):
     text_object = c.beginText(50, height - 120)
     text_object.setFont('Malgun', 10) if 'Malgun' in pdfmetrics.getRegisteredFonts() else text_object.setFont('Helvetica', 10)
     
-    # 줄바꿈 처리하여 텍스트 삽입
     for line in itinerary_text.split('\n'):
-        # 특수 이모지 제거 또는 필터링 (PDF 렌더링 충돌 방지)
         clean_line = re.sub(r'[^\w\s\.,!?()~|:\-\[\]가-힣]', '', line)
         text_object.textLine(clean_line)
         
@@ -600,7 +592,7 @@ def create_travel_pdf(dest_name: str, itinerary_text: str):
     return buffer
 
 # -----------------------------------------------------------------------------
-# 7. 사이드바 UI (티베트여우 감성 적용)
+# 7. 사이드바 UI
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -614,7 +606,7 @@ preset_places = {
 }
 
 with st.sidebar:
-    st.markdown("### 🦊 **언어 설정 / Language**")
+    st.markdown("### 🌐 **언어 설정 / Language**")
     lang_mode = st.selectbox("UI 언어 선택", ["한국어 (KO)", "English (EN)", "日本語 (JA)"])
 
     st.markdown("---")
@@ -752,7 +744,7 @@ if target_lat and target_lon:
     region_badge = "✈️ Global" if is_overseas else "🇰🇷 Domestic"
     st.markdown(f"""
     <div class="target-banner-card">
-        <div class="target-banner-name">[{region_badge}] 🦊 {target_name}</div>
+        <div class="target-banner-name">[{region_badge}] {target_name}</div>
         <div class="target-banner-addr"><span>📍 Location / 주소:</span> {target_addr}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -770,7 +762,7 @@ if target_lat and target_lon:
 
     # 8-1. [좌측] 지도 & 길찾기
     with col_map:
-        st.markdown("#### 🗺️ 🦊 티베트여우의 인터랙티브 여행 지도")
+        st.markdown("#### 🗺️ 인터랙티브 여행 지도")
         if HAS_FOLIUM:
             m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
             folium.Marker([target_lat, target_lon], popup=target_name, tooltip=target_name, icon=folium.Icon(color="red", icon="info-sign")).add_to(m)
@@ -817,8 +809,8 @@ if target_lat and target_lon:
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <img src="{icon_url}" width="70" />
                         <div>
-                            <div style="font-size: 2.1rem; font-weight: 800; color: #1c1917; line-height: 1.1;">{temp:.1f} °C</div>
-                            <div style="font-size: 1.0rem; font-weight: 700; color: #57534e; margin-top: 4px;">{weather_desc}</div>
+                            <div style="font-size: 2.1rem; font-weight: 800; color: #0f172a; line-height: 1.1;">{temp:.1f} °C</div>
+                            <div style="font-size: 1.0rem; font-weight: 700; color: #475569; margin-top: 4px;">{weather_desc}</div>
                         </div>
                     </div>
                 </div>
@@ -841,7 +833,7 @@ if target_lat and target_lon:
                     st.success(t["tip_good"])
 
         with tab_fx_quick:
-            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
             if is_overseas:
                 detected_cur, _ = detect_currency_and_cc(target_name)
@@ -873,9 +865,9 @@ if target_lat and target_lon:
 
             st.markdown(f"""
             <div class="glass-metric-card" style="margin-top: 10px;">
-                <div style="font-size: 0.85rem; color: #57534e; font-weight: 700;">{t['res_label']} ({to_cur})</div>
-                <div style="font-size: 1.6rem; font-weight: 800; color: #b45309; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
-                <div style="font-size: 0.82rem; color: #57534e; margin-top: 4px;">
+                <div style="font-size: 0.85rem; color: #475569; font-weight: 700;">{t['res_label']} ({to_cur})</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #2563eb; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
+                <div style="font-size: 0.82rem; color: #475569; margin-top: 4px;">
                     • 1 {from_cur} = {exchange_rate:,.4f} {to_cur}<br>
                     • 1 {to_cur} = <b>{reverse_rate:,.2f} {from_cur}</b> (여행 체감 물가)
                 </div>
@@ -884,7 +876,7 @@ if target_lat and target_lon:
 
             # 항공권 정보 및 예약 사이트 버튼
             st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
             
             clean_dest = target_name.split("(")[0].strip()
             skyscanner_url = f"https://www.skyscanner.co.kr/transport/flights/{target_cc}/"
@@ -892,11 +884,11 @@ if target_lat and target_lon:
             naver_flight_url = f"https://flight.naver.com/"
 
             st.markdown(f"""
-            <div class="glass-metric-card" style="background: linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%) !important;">
-                <div style="font-size: 0.92rem; font-weight: 700; color: #1c1917; margin-bottom: 6px;">
+            <div class="glass-metric-card" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;">
+                <div style="font-size: 0.92rem; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
                     ✈️ 인천(ICN) ⇄ {target_name} 항공편
                 </div>
-                <div style="font-size: 0.85rem; color: #57534e; margin-bottom: 12px;">
+                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
                     • 예상 평균 가격: <b>{'약 30만 ~ 120만 원 (시즌별 상이)' if is_overseas else '국내선 / KTX 이용권역'}</b>
                 </div>
             </div>
@@ -912,23 +904,22 @@ if target_lat and target_lon:
                 st.link_button("🟢 네이버 항공권", naver_flight_url, use_container_width=True)
 
         with tab_ai_route:
-            st.markdown("<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>🤖 AI 오픈 API 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>🤖 AI 오픈 API 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
             st.caption("선택한 목적지의 맞춤 일정을 생성하고 PDF 다운로드까지 지원합니다!")
 
             ai_days = st.slider("여행 기간 (일)", min_value=1, max_value=7, value=2, key="ai_days_slider")
             ai_style = st.selectbox("여행 스타일", ["힐링 & 미식 투어", "역사 & 문화 탐방", "인생샷 & 액티비티", "로컬 감성 산책"], key="ai_style_select")
 
             if st.button("✨ AI 맞춤 일정 생성하기", use_container_width=True):
-                with st.spinner("🦊 티베트여우가 최적의 여행 경로를 짜는 중입니다..."):
+                with st.spinner("최적의 여행 경로를 생성하는 중입니다..."):
                     itinerary_result = generate_ai_travel_itinerary(target_name, ai_days, ai_style)
                     st.session_state["generated_itinerary"] = itinerary_result
-                    st.success("여행 일정이 멋지게 완성되었습니다!")
+                    st.success("여행 일정이 완성되었습니다!")
 
             if "generated_itinerary" in st.session_state and st.session_state["generated_itinerary"]:
                 st.markdown("---")
                 st.markdown(st.session_state["generated_itinerary"])
                 
-                # PDF 다운로드 버튼 인터페이스
                 pdf_data = create_travel_pdf(target_name, st.session_state["generated_itinerary"])
                 if pdf_data:
                     st.download_button(
@@ -946,7 +937,7 @@ if target_lat and target_lon:
     # -------------------------------------------------------------------------
     st.divider()
 
-    st.markdown(f"### 🍽️ 🦊 **{target_name}** {t['food_tab']} & {t['tour_tab']}")
+    st.markdown(f"### 🍽️ **{target_name}** {t['food_tab']} & {t['tour_tab']}")
     tab_food, tab_tour, tab_search = st.tabs([t["food_tab"], t["tour_tab"], t["portal_tab"]])
 
     if not is_overseas:
@@ -1078,4 +1069,4 @@ if target_lat and target_lon:
                 st.link_button(t["naver_blog"], naver_overseas_url, use_container_width=True)
 
 else:
-    st.info("👈 🦊 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
+    st.info("👈 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
