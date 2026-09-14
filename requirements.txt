@@ -6,3 +6,4 @@ numpy
 matplotlib
 plotly
 folium
+streamlit-folium
