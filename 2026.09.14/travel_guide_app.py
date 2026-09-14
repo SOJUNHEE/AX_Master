@@ -208,7 +208,7 @@ st.markdown("""
         gap: 6px;
     }
 
-    /* 이미지 고정 높이 및 둥근 모서리 규격 통일 */
+    /* 이미지 규격 및 둥근 모서리 통일 */
     [data-testid="stImage"] img {
         height: 220px !important;
         width: 100% !important;
@@ -217,7 +217,6 @@ st.markdown("""
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
     }
 
-    /* 이미지 하단 캡션 폰트 스타일 */
     [data-testid="stImageCaption"] {
         font-size: 0.9rem !important;
         font-weight: 700 !important;
@@ -293,13 +292,6 @@ st.markdown("""
         background-color: #ffffff !important;
         color: #0f172a !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
-    }
-    .stTextInput>div>div>input, .stSelectbox>div>div, .stNumberInput>div>div>input {
-        background-color: #ffffff !important;
-        color: #0f172a !important;
-        font-weight: 600 !important;
-        border: 1.5px solid #cbd5e1 !important;
-        border-radius: 10px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -404,10 +396,6 @@ def get_wikipedia_thumbnail(query_text: str):
     return None, None
 
 def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 3):
-    """
-    각 사진의 실제 명칭(이름)과 URL을 딕셔너리 리스트 형태로 반환합니다.
-    """
-    # 1. 큐레이션된 도시 풀 체크
     for city_key, img_list in CURATED_CITY_IMAGES.items():
         if city_key in place_name:
             return img_list[:size]
@@ -415,12 +403,10 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     results = []
     clean_name = re.sub(r"\(.*?\)", "", place_name).strip()
 
-    # 2. 위키백과 대표 썸네일 조회
     wiki_img, wiki_title = get_wikipedia_thumbnail(place_name)
     if wiki_img:
         results.append({"name": f"{clean_name} 전경 ({wiki_title})", "url": wiki_img})
 
-    # 3. 카카오 이미지 검색
     if kakao_key:
         try:
             url = "https://dapi.kakao.com/v2/search/image"
@@ -436,7 +422,6 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
         except Exception:
             pass
 
-    # 4. 안전 풀백 (실제 도시 이름 기반 명칭 부여)
     general_fallbacks = [
         {"name": f"{clean_name} 대표 랜드마크", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=900&q=80"},
         {"name": f"{clean_name} 도심 풍경", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?auto=format&fit=crop&w=900&q=80"},
@@ -708,13 +693,13 @@ if target_lat and target_lon:
     </div>
     """, unsafe_allow_html=True)
 
-    # 🌟 각 사진의 실제 명칭이 캡션으로 출력되는 고품질 갤러리
+    # 🌟 각 사진의 실제 명칭이 캡션으로 출력되는 고품질 갤러리 (use_container_width 적용)
     place_images = get_nearby_tour_or_food_images(target_name, KAKAO_REST_KEY, size=3)
     if place_images:
         img_cols = st.columns(len(place_images))
         for idx, item in enumerate(place_images):
             with img_cols[idx]:
-                st.image(item["url"], width="stretch", caption=f"📍 {item['name']}")
+                st.image(item["url"], use_container_width=True, caption=f"📍 {item['name']}")
         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     col_map, col_right = st.columns([6, 4], gap="large")
@@ -741,15 +726,15 @@ if target_lat and target_lon:
             kakao_link = target_url if target_url else f"https://map.kakao.com/link/map/{target_name},{target_lat},{target_lon}"
             route_link = f"https://map.kakao.com/link/to/{target_name},{target_lat},{target_lon}"
             with btn_col1:
-                st.link_button("📍 카카오맵 상세 보기", kakao_link, width="stretch")
+                st.link_button("📍 카카오맵 상세 보기", kakao_link, use_container_width=True)
             with btn_col2:
-                st.link_button("🚗 카카오맵 길찾기", route_link, width="stretch")
+                st.link_button("🚗 카카오맵 길찾기", route_link, use_container_width=True)
         else:
             google_map_link = f"https://www.google.com/maps/search/?api=1&query={target_lat},{target_lon}"
             with btn_col1:
-                st.link_button("🌐 구글 맵스 열기", google_map_link, width="stretch")
+                st.link_button("🌐 구글 맵스 열기", google_map_link, use_container_width=True)
             with btn_col2:
-                st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", width="stretch")
+                st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", use_container_width=True)
 
     # 8-2. [우측] 실시간 날씨 & 전 세계 통화 계산기
     with col_right:
@@ -807,7 +792,6 @@ if target_lat and target_lon:
 
             target_to_currency = auto_currency if auto_currency in all_supported_currencies else ("USD" if is_overseas else "KRW")
             
-            # Session State 강제 동기화로 목적지 전환 시 통화 자동 변경
             if "last_dest_key" not in st.session_state or st.session_state["last_dest_key"] != target_name:
                 st.session_state["last_dest_key"] = target_name
                 st.session_state["quick_to_cur"] = target_to_currency
@@ -881,7 +865,7 @@ if target_lat and target_lon:
                         """, unsafe_allow_html=True)
                     with c_btn:
                         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-                        st.link_button(t["review_btn"], item["place_url"], width="stretch")
+                        st.link_button(t["review_btn"], item["place_url"], use_container_width=True)
             else:
                 st.info("반경 2km 이내에 등록된 맛집 정보가 없습니다.")
 
@@ -905,7 +889,7 @@ if target_lat and target_lon:
                         """, unsafe_allow_html=True)
                     with c_btn:
                         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-                        st.link_button(t["detail_btn"], item["place_url"], width="stretch")
+                        st.link_button(t["detail_btn"], item["place_url"], use_container_width=True)
             else:
                 st.info("반경 3km 이내에 등록된 관광 명소 정보가 없습니다.")
 
@@ -914,9 +898,9 @@ if target_lat and target_lon:
             google_search_url = f"https://www.google.com/search?q={target_name}+restaurants+travel"
             sc1, sc2 = st.columns(2)
             with sc1:
-                st.link_button(t["naver_blog"], naver_blog_url, width="stretch")
+                st.link_button(t["naver_blog"], naver_blog_url, use_container_width=True)
             with sc2:
-                st.link_button("🔵 Google 검색", google_search_url, width="stretch")
+                st.link_button("🔵 Google 검색", google_search_url, use_container_width=True)
 
     else:
         clean_name = target_name.split("(")[0].strip()
@@ -947,7 +931,7 @@ if target_lat and target_lon:
                     """, unsafe_allow_html=True)
                 with c_btn:
                     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-                    st.link_button(t["review_btn"], item["url"], width="stretch")
+                    st.link_button(t["review_btn"], item["url"], use_container_width=True)
 
         with tab_tour:
             for item in ov_tours:
@@ -965,7 +949,7 @@ if target_lat and target_lon:
                     """, unsafe_allow_html=True)
                 with c_btn:
                     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-                    st.link_button(t["detail_btn"], item["url"], width="stretch")
+                    st.link_button(t["detail_btn"], item["url"], use_container_width=True)
 
         with tab_search:
             clean_kw = target_name.split("(")[0].strip()
@@ -976,13 +960,13 @@ if target_lat and target_lon:
 
             sc1, sc2, sc3, sc4 = st.columns(4)
             with sc1:
-                st.link_button(t["google_food"], g_maps_food_url, width="stretch")
+                st.link_button(t["google_food"], g_maps_food_url, use_container_width=True)
             with sc2:
-                st.link_button(t["google_tour"], g_maps_attract_url, width="stretch")
+                st.link_button(t["google_tour"], g_maps_attract_url, use_container_width=True)
             with sc3:
-                st.link_button(t["tripadvisor"], tripadvisor_url, width="stretch")
+                st.link_button(t["tripadvisor"], tripadvisor_url, use_container_width=True)
             with sc4:
-                st.link_button(t["naver_blog"], naver_overseas_url, width="stretch")
+                st.link_button(t["naver_blog"], naver_overseas_url, use_container_width=True)
 
 else:
     st.info("👈 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요.")
