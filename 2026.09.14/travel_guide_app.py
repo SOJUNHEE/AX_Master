@@ -166,7 +166,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 모던하고 깔끔한 여행 가이드 스타일 CSS
+# 3. 탭 선택 시 흰색이 너무 튀지 않도록 부드럽게 어우러지는 모던 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -293,24 +293,28 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
     }
 
+    /* 탭 스타일 수정: 선택 시 하얗게 둥둥 뜨는 느낌을 줄이고 부드러운 그림자와 톤앤매너 적용 */
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #f1f5f9 !important;
+        background-color: #e2e8f0 !important;
         border-radius: 14px !important;
-        padding: 6px !important;
-        gap: 6px !important;
-        border: 1px solid #e2e8f0 !important;
+        padding: 5px !important;
+        gap: 4px !important;
+        border: 1px solid #cbd5e1 !important;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 0.98rem !important;
+        font-size: 0.95rem !important;
         font-weight: 700 !important;
         color: #64748b !important;
         border-radius: 10px !important;
-        padding: 8px 18px !important;
+        padding: 8px 16px !important;
+        background-color: transparent !important;
+        border: none !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #ffffff !important;
         color: #0f172a !important;
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+        border: 1px solid #cbd5e1 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -534,25 +538,25 @@ def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
             pass
 
     return f"""
-### 스마트 맞춤형 [{dest_name}] {days}일 [{style}] 추천 코스
+스마트 맞춤형 [{dest_name}] {days}일 [{style}] 추천 코스
 
-#### [ Day 1: 핵심 명소 탐방 ]
-- **09:30 ~ 11:30** | {dest_name} 중심가 도착 및 랜드마크 스냅 사진 촬영
-- **12:00 ~ 13:30** | 현지 인기 로컬 맛집에서 대표 미식 체험
-- **14:00 ~ 17:00** | 역사와 문화가 숨쉬는 핵심 박물관 또는 전통 거리 산책
-- **18:30 ~** | 아름다운 야경을 감상할 수 있는 전망대 및 디너 코스
+[ Day 1: 핵심 명소 탐방 ]
+- 09:30 ~ 11:30 | {dest_name} 중심가 도착 및 랜드마크 스냅 사진 촬영
+- 12:00 ~ 13:30 | 현지 인기 로컬 맛집에서 대표 미식 체험
+- 14:00 ~ 17:00 | 역사와 문화가 숨쉬는 핵심 박물관 또는 전통 거리 산책
+- 18:30 ~ | 아름다운 야경을 감상할 수 있는 전망대 및 디너 코스
 
-#### [ Day 2: 힐링 및 로컬 체험 코스 ]
-- **10:00 ~ 12:30** | 탁 트인 자연 경관 또는 핫플레이스 카페 투어
-- **13:00 ~ 14:30** | 현지인들이 사랑하는 로컬 푸드 점심 식사
-- **15:00 ~ 18:00** | 기념품 쇼핑 및 트렌디한 편집샵 탐방
-- **19:00 ~** | 여행의 피로를 녹여줄 아늑한 바 또는 휴식 시간
+[ Day 2: 힐링 및 로컬 체험 코스 ]
+- 10:00 ~ 12:30 | 탁 트인 자연 경관 또는 핫플레이스 카페 투어
+- 13:00 ~ 14:30 | 현지인들이 사랑하는 로컬 푸드 점심 식사
+- 15:00 ~ 18:00 | 기념품 쇼핑 및 트렌디한 편집샵 탐방
+- 19:00 ~ | 여행의 피로를 녹여줄 아늑한 바 또는 휴식 시간
 
-*(💡 안내: 현지 상황에 맞춰 유연하게 일정에 변화를 주어 더욱 풍성한 여행을 즐겨보세요!)*
+(안내: 현지 상황에 맞춰 유연하게 일정에 변화를 주어 더욱 풍성한 여행을 즐겨보세요!)
 """
 
 # -----------------------------------------------------------------------------
-# 6-2. PDF 생성 함수 (ReportLab 이용)
+# 6-2. PDF 생성 함수 (ReportLab 이용 - 없을 경우 텍스트 fallback 지원으로 다운로드 보장)
 # -----------------------------------------------------------------------------
 def create_travel_pdf(dest_name: str, itinerary_text: str):
     if not HAS_REPORTLAB:
@@ -785,7 +789,7 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", use_container_width=True)
 
-    # 8-2. [우측] 날씨 & 환율 계산기 & AI 여행 코스 및 PDF 변환 탭
+    # 8-2. [우측] 날씨 & 환율 계산기 & AI 여행 코스 및 다운로드 탭
     with col_right:
         tab_weather, tab_fx_quick, tab_ai_route = st.tabs([t["weather_tab"], t["fx_tab"], t["ai_tab"]])
 
@@ -904,8 +908,8 @@ if target_lat and target_lon:
                 st.link_button("🟢 네이버 항공권", naver_flight_url, use_container_width=True)
 
         with tab_ai_route:
-            st.markdown("<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>🤖 AI 오픈 API 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
-            st.caption("선택한 목적지의 맞춤 일정을 생성하고 PDF 다운로드까지 지원합니다!")
+            st.markdown("<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>🤖 AI 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
+            st.caption("선택한 목적지의 맞춤 일정을 생성하고 즉시 다운로드할 수 있습니다!")
 
             ai_days = st.slider("여행 기간 (일)", min_value=1, max_value=7, value=2, key="ai_days_slider")
             ai_style = st.selectbox("여행 스타일", ["힐링 & 미식 투어", "역사 & 문화 탐방", "인생샷 & 액티비티", "로컬 감성 산책"], key="ai_style_select")
@@ -920,6 +924,7 @@ if target_lat and target_lon:
                 st.markdown("---")
                 st.markdown(st.session_state["generated_itinerary"])
                 
+                # ReportLab 설치 여부와 관계없이 다운로드가 항상 가능하도록 예외 처리 및 텍스트/PDF 분기 처리
                 pdf_data = create_travel_pdf(target_name, st.session_state["generated_itinerary"])
                 if pdf_data:
                     st.download_button(
@@ -930,7 +935,14 @@ if target_lat and target_lon:
                         use_container_width=True
                     )
                 else:
-                    st.info("💡 PDF 변환 기능 이용을 위해 터미널에서 `pip install reportlab` 명령어를 실행해주세요.")
+                    # reportlab이 없을 때 즉시 다운로드 가능한 텍스트(.txt) 다운로드 버튼 제공
+                    st.download_button(
+                        label="📄 여행 일정표 텍스트(.txt) 다운로드",
+                        data=st.session_state["generated_itinerary"],
+                        file_name=f"{target_name}_travel_itinerary.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
 
     # -------------------------------------------------------------------------
     # 8-3. 주변 맛집/명소/리뷰 섹션
