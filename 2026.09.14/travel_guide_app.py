@@ -3,7 +3,23 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 import streamlit as st
-from streamlit_geolocation import streamlit_geolocation
+
+# -----------------------------------------------------------------------------
+# 0. 필수/선택 라이브러리 안전 임포트 (배포 환경 모듈 누락 방어)
+# -----------------------------------------------------------------------------
+try:
+    from streamlit_geolocation import streamlit_geolocation
+    HAS_GEO = True
+except (ImportError, ModuleNotFoundError):
+    HAS_GEO = False
+    streamlit_geolocation = None
+
+try:
+    import folium
+    from streamlit_folium import st_folium
+    HAS_FOLIUM = True
+except (ImportError, ModuleNotFoundError):
+    HAS_FOLIUM = False
 
 # -----------------------------------------------------------------------------
 # 1. 환경 변수 및 Streamlit Secrets 조회
@@ -33,7 +49,7 @@ if not KAKAO_REST_KEY:
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 다국어(i18n) & 전 세계 국가 코드 ⇄ 통화(Currency) 매핑
+# 2. 다국어(i18n) & 전 세계 국가 코드 ⇄ 통화 매핑
 # -----------------------------------------------------------------------------
 I18N = {
     "ko": {
@@ -242,7 +258,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 고시인성 프리미엄 UI CSS
+# 3. 고시인성 프리미엄 UI CSS (비침 없는 솔리드 화이트 카드)
 # -----------------------------------------------------------------------------
 modern_clean_css = """
 <style>
@@ -376,7 +392,7 @@ modern_clean_css = """
 st.markdown(modern_clean_css, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 4. 전 세계 환율 피드 API (ExchangeRate-API 최신 환율 로드)
+# 4. 전 세계 환율 피드 API (ExchangeRate-API 160개국 이상 환율 로드)
 # -----------------------------------------------------------------------------
 @st.cache_data(ttl=1800)
 def get_global_exchange_rates(api_key: str):
@@ -406,7 +422,7 @@ priority_currencies = ["KRW", "USD", "JPY", "EUR", "CNY", "GBP", "VND", "THB", "
 all_supported_currencies = priority_currencies + sorted([k for k in rates_dict.keys() if k not in priority_currencies])
 
 # -----------------------------------------------------------------------------
-# 5. 카카오 및 OpenStreetMap 글로벌 검색 함수
+# 5. 검색 및 날씨 API 함수
 # -----------------------------------------------------------------------------
 def search_kakao_place(keyword: str, kakao_key: str, center_lat: float = None, center_lon: float = None, radius: int = None):
     url = "https://dapi.kakao.com/v2/local/search/keyword.json"
@@ -491,7 +507,7 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6. 사이드바: 다국어 및 목적지 탐색 (전 세계 통화 자동 매칭)
+# 6. 사이드바: 다국어 및 목적지 탐색
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -556,13 +572,17 @@ with st.sidebar:
 
         else:
             st.caption("현재 위치를 기반으로 반경을 검색합니다.")
-            geo_location = streamlit_geolocation()
-            if geo_location and geo_location.get("latitude"):
-                my_lat = geo_location["latitude"]
-                my_lon = geo_location["longitude"]
-                st.success(f"현재 위치 감지됨 ({my_lat:.4f}, {my_lon:.4f})")
+            if HAS_GEO and streamlit_geolocation:
+                geo_location = streamlit_geolocation()
+                if geo_location and geo_location.get("latitude"):
+                    my_lat = geo_location["latitude"]
+                    my_lon = geo_location["longitude"]
+                    st.success(f"현재 위치 감지됨 ({my_lat:.4f}, {my_lon:.4f})")
+                else:
+                    st.info("위치 권한 대기 중: 기본 위치(서울시청)로 설정됩니다.")
+                    my_lat, my_lon = 37.5665, 126.9780
             else:
-                st.info("기본 위치(서울시청)로 설정됩니다.")
+                st.info("📍 위치 모듈 기본값: 서울시청 기준으로 작동합니다.")
                 my_lat, my_lon = 37.5665, 126.9780
 
             search_radius = st.slider("검색 반경 (미터)", min_value=300, max_value=5000, value=1000, step=100)
@@ -629,7 +649,7 @@ with st.sidebar:
                 else:
                     st.warning(f"'{global_query}' 관련 해외 위치를 찾지 못했습니다.")
 
-# 언어 코드 결정 로직
+# 언어 코드 결정
 if lang_mode == "한국어 (KO)":
     active_lang = "ko"
 elif lang_mode == "English (EN)":
@@ -641,7 +661,7 @@ else:
 t = I18N.get(active_lang, I18N["en"])
 
 # -----------------------------------------------------------------------------
-# 7. 본문 메인 레이아웃 (전 세계 환율 실시간 연동)
+# 7. 본문 메인 레이아웃
 # -----------------------------------------------------------------------------
 st.markdown(f'<div class="main-header-title">{t["title"]}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="main-header-sub">{t["subtitle"]}</div>', unsafe_allow_html=True)
@@ -667,27 +687,24 @@ if target_lat and target_lon:
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 7-1. [좌측] 휠 확대/축소 및 드래그 지원 인터랙티브 지도
+    # 7-1. [좌측] 인터랙티브 지도 (Folium 지원 시 휠 확대/축소 및 드래그 동작)
     with col_map:
         st.markdown("#### 🗺️ 인터랙티브 여행 지도")
         st.caption("💡 마우스 휠 스크롤 또는 좌측 상단 [+], [-] 버튼으로 자유롭게 확대/축소할 수 있습니다.")
 
-        import folium
-        from streamlit_folium import st_folium
+        if HAS_FOLIUM:
+            m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
+            folium.Marker(
+                [target_lat, target_lon],
+                popup=target_name,
+                tooltip=target_name,
+                icon=folium.Icon(color="red", icon="info-sign")
+            ).add_to(m)
+            st_folium(m, width="100%", height=450, returned_objects=[])
+        else:
+            # Folium 미설치 시 내장 맵으로 렌더링
+            st.map([{"lat": target_lat, "lon": target_lon}], zoom=14)
 
-        # 지도의 중심 좌표 및 줌 레벨 설정 (마우스 휠/드래그 기본 지원)
-        m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
-        folium.Marker(
-            [target_lat, target_lon],
-            popup=target_name,
-            tooltip=target_name,
-            icon=folium.Icon(color="red", icon="info-sign")
-        ).add_to(m)
-
-        # 스트림릿 화면에 인터랙티브 지도 렌더링
-        st_folium(m, width="100%", height=450, returned_objects=[])
-
-        # 외부 지도 길찾기/상세보기 링크 유지
         btn_col1, btn_col2 = st.columns(2)
         if not is_overseas:
             kakao_link = target_url if target_url else f"https://map.kakao.com/link/map/{target_name},{target_lat},{target_lon}"
@@ -703,7 +720,7 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 길찾기 (Google)", f"{google_map_link}&dirflg=d", width="stretch")
 
-    # 7-2. [우측] 날씨 & 전 세계 통화 호환 환율 계산기
+    # 7-2. [우측] 실시간 날씨 & 전 세계 통화 호환 환율 계산기
     with col_right:
         tab_weather, tab_fx_quick = st.tabs([t["weather_tab"], t["fx_tab"]])
 
@@ -789,7 +806,7 @@ if target_lat and target_lon:
             """, unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # 8. 주변 맛집/명소/리뷰 섹션 (국내/해외 맞춤 분기)
+    # 8. 주변 맛집/명소/리뷰 섹션
     # -------------------------------------------------------------------------
     st.divider()
 
