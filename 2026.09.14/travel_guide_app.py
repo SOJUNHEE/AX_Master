@@ -1,5 +1,6 @@
 import os
 import re
+import platform
 from pathlib import Path
 from dotenv import load_dotenv
 import requests
@@ -7,7 +8,7 @@ import streamlit as st
 import io
 
 # -----------------------------------------------------------------------------
-# 0. 라이브러리 안전 임포트 및 PDF 생성 라이브러리 확인
+# 0. 라이브러리 안전 임포트 및 PDF / 지오로케이션 / 폴륨 확인
 # -----------------------------------------------------------------------------
 try:
     from streamlit_geolocation import streamlit_geolocation
@@ -166,7 +167,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 탭 선택 시 흰색이 너무 튀지 않도록 부드럽게 어우러지는 모던 스타일 CSS
+# 3. 모던 UI 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -293,7 +294,6 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
     }
 
-    /* 탭 스타일 수정: 선택 시 하얗게 둥둥 뜨는 느낌을 줄이고 부드러운 그림자와 톤앤매너 적용 */
     .stTabs [data-baseweb="tab-list"] {
         background-color: #e2e8f0 !important;
         border-radius: 14px !important;
@@ -350,7 +350,7 @@ priority_currencies = ["KRW", "USD", "JPY", "EUR", "CNY", "GBP", "VND", "THB", "
 all_supported_currencies = priority_currencies + sorted([k for k in rates_dict.keys() if k not in priority_currencies])
 
 # -----------------------------------------------------------------------------
-# 5. 이미지 링크 DB
+# 5. 이미지 링크 DB 및 보정
 # -----------------------------------------------------------------------------
 CURATED_CITY_IMAGES = {
     "중국": [
@@ -441,7 +441,7 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     return results[:size]
 
 # -----------------------------------------------------------------------------
-# 6. 통화 및 국가 코드 판별
+# 6. 통화 및 국가 코드 판별 & API 헬퍼 함수
 # -----------------------------------------------------------------------------
 def detect_currency_and_cc(name_str: str):
     q = name_str.lower()
@@ -519,14 +519,14 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 6-1. AI 여행 경로 생성 함수
+# 6-1. AI 여행 경로 생성 함수 (Gemini API)
 # -----------------------------------------------------------------------------
 def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
     api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
     if api_key:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            prompt = f"'{dest_name}' 여행지에서 {days}일 동안의 '{style}' 스타일 맞춤형 일정을 오전, 오후, 저녁으로 나누어 상세하고 실용적으로 작성해 주세요."
+            prompt = f"'{dest_name}' 여행지에서 {days}일 동안의 '{style}' 스타일 맞춤형 일정을 오전, 오후, 저녁으로 나누어 상세하고 실용적으로 작성해 주세요. 방문할 핵심 코스 좌표나 위치명도 함께 언급해 주세요."
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, timeout=10)
             if res.status_code == 200:
@@ -556,7 +556,7 @@ def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
 """
 
 # -----------------------------------------------------------------------------
-# 6-2. PDF 생성 함수 (ReportLab 이용 - 없을 경우 텍스트 fallback 지원으로 다운로드 보장)
+# 6-2. 크로스플랫폼 PDF 생성 함수 (ReportLab - 윈도우/리눅스 클라우드 호환)
 # -----------------------------------------------------------------------------
 def create_travel_pdf(dest_name: str, itinerary_text: str):
     if not HAS_REPORTLAB:
@@ -566,23 +566,30 @@ def create_travel_pdf(dest_name: str, itinerary_text: str):
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     
+    font_name = 'Helvetica'
     try:
-        font_path = "C:/Windows/Fonts/malgun.ttf"
-        if os.path.exists(font_path):
-            pdfmetrics.registerFont(TTFont('Malgun', font_path))
-            c.setFont('Malgun', 16)
+        sys_type = platform.system()
+        if sys_type == "Windows":
+            font_path = "C:/Windows/Fonts/malgun.ttf"
+        elif sys_type == "Darwin":
+            font_path = "/Library/Fonts/AppleGothic.ttf"
         else:
-            c.setFont('Helvetica-Bold', 16)
-    except Exception:
-        c.setFont('Helvetica-Bold', 16)
+            font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
 
+        if os.path.exists(font_path):
+            pdfmetrics.registerFont(TTFont('KoreanFont', font_path))
+            font_name = 'KoreanFont'
+    except Exception:
+        pass
+
+    c.setFont(font_name, 16)
     c.drawString(50, height - 50, f"Smart Travel Manager - Itinerary Report")
-    c.setFont('Malgun', 12) if 'Malgun' in pdfmetrics.getRegisteredFonts() else c.setFont('Helvetica', 12)
+    c.setFont(font_name, 12)
     c.drawString(50, height - 80, f"Destination: {dest_name}")
     c.line(50, height - 90, width - 50, height - 90)
 
     text_object = c.beginText(50, height - 120)
-    text_object.setFont('Malgun', 10) if 'Malgun' in pdfmetrics.getRegisteredFonts() else text_object.setFont('Helvetica', 10)
+    text_object.setFont(font_name, 10)
     
     for line in itinerary_text.split('\n'):
         clean_line = re.sub(r'[^\w\s\.,!?()~|:\-\[\]가-힣]', '', line)
@@ -728,7 +735,7 @@ with st.sidebar:
                     auto_currency = detected_cur if detected_cur in rates_dict else "USD"
                     target_cc = detected_cc
 
-# 언어 코드 확정
+# 언어 설정 확정
 if lang_mode == "한국어 (KO)":
     active_lang = "ko"
 elif lang_mode == "English (EN)":
@@ -739,7 +746,7 @@ else:
 t = I18N.get(active_lang, I18N["ko"])
 
 # -----------------------------------------------------------------------------
-# 8. 본문 레이아웃
+# 8. 본문 레이아웃 및 기능 구현
 # -----------------------------------------------------------------------------
 st.markdown(f'<div class="main-header-title">{t["title"]}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="main-header-sub">{t["subtitle"]}</div>', unsafe_allow_html=True)
@@ -764,12 +771,72 @@ if target_lat and target_lon:
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 8-1. [좌측] 지도 & 길찾기
+    # 8-1. [좌측] 인터랙티브 지도 & 경로(Route) 시각화
     with col_map:
-        st.markdown("#### 🗺️ 인터랙티브 여행 지도")
+        st.markdown("#### 🗺️ 인터랙티브 여행 지도 & 추천 경로")
         if HAS_FOLIUM:
-            m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
-            folium.Marker([target_lat, target_lon], popup=target_name, tooltip=target_name, icon=folium.Icon(color="red", icon="info-sign")).add_to(m)
+            m = folium.Map(location=[target_lat, target_lon], zoom_start=14)
+            # 메인 목적지 마커
+            folium.Marker(
+                [target_lat, target_lon], 
+                popup=f"<b>{target_name}</b> (중심 목적지)", 
+                tooltip=target_name, 
+                icon=folium.Icon(color="red", icon="star", prefix="fa")
+            ).add_to(m)
+
+            # 주변 명소 및 맛집 좌표 추출하여 지도에 마커 및 경로(Polyline) 연결 표시
+            route_coords = [[target_lat, target_lon]]
+            
+            if not is_overseas:
+                foods_for_map, _ = get_nearby_places_by_category("FD6", target_lat, target_lon, KAKAO_REST_KEY, radius=2000)
+                tours_for_map, _ = get_nearby_places_by_category("AT4", target_lat, target_lon, KAKAO_REST_KEY, radius=3000)
+                
+                for f in foods_for_map[:3]:
+                    f_lat, f_lon = float(f["y"]), float(f["x"])
+                    route_coords.append([f_lat, f_lon])
+                    folium.Marker(
+                        [f_lat, f_lon],
+                        popup=f"🍽️ {f['place_name']}",
+                        tooltip=f['place_name'],
+                        icon=folium.Icon(color="orange", icon="cutlery", prefix="fa")
+                    ).add_to(m)
+                
+                for tp in tours_for_map[:2]:
+                    tp_lat, tp_lon = float(tp["y"]), float(tp["x"])
+                    route_coords.append([tp_lat, tp_lon])
+                    folium.Marker(
+                        [tp_lat, tp_lon],
+                        popup=f"🏛️ {tp['place_name']}",
+                        tooltip=tp['place_name'],
+                        icon=folium.Icon(color="blue", icon="camera", prefix="fa")
+                    ).add_to(m)
+            else:
+                # 해외 가상 코스 마커 및 경로
+                offset = 0.01
+                sub_spots = [
+                    ("추천 랜드마크 광장", target_lat + offset, target_lon + offset, "blue", "camera"),
+                    ("베스트 로컬 맛집", target_lat - offset, target_lon + offset, "orange", "cutlery"),
+                    ("파노라마 전망대", target_lat + offset, target_lon - offset, "green", "binoculars")
+                ]
+                for s_name, s_lat, s_lon, s_color, s_icon in sub_spots:
+                    route_coords.append([s_lat, s_lon])
+                    folium.Marker(
+                        [s_lat, s_lon],
+                        popup=s_name,
+                        tooltip=s_name,
+                        icon=folium.Icon(color=s_color, icon=s_icon, prefix="fa")
+                    ).add_to(m)
+
+            # 경로(Polyline) 그리기
+            if len(route_coords) > 1:
+                folium.PolyLine(
+                    locations=route_coords,
+                    color="#2563eb",
+                    weight=4,
+                    opacity=0.8,
+                    dash_array="8"
+                ).add_to(m)
+
             st_folium(m, width="100%", height=450, returned_objects=[])
         else:
             st.map([{"lat": target_lat, "lon": target_lon}], zoom=14)
@@ -878,7 +945,6 @@ if target_lat and target_lon:
             </div>
             """, unsafe_allow_html=True)
 
-            # 항공권 정보 및 예약 사이트 버튼
             st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
             
@@ -924,7 +990,6 @@ if target_lat and target_lon:
                 st.markdown("---")
                 st.markdown(st.session_state["generated_itinerary"])
                 
-                # ReportLab 설치 여부와 관계없이 다운로드가 항상 가능하도록 예외 처리 및 텍스트/PDF 분기 처리
                 pdf_data = create_travel_pdf(target_name, st.session_state["generated_itinerary"])
                 if pdf_data:
                     st.download_button(
@@ -935,7 +1000,6 @@ if target_lat and target_lon:
                         use_container_width=True
                     )
                 else:
-                    # reportlab이 없을 때 즉시 다운로드 가능한 텍스트(.txt) 다운로드 버튼 제공
                     st.download_button(
                         label="📄 여행 일정표 텍스트(.txt) 다운로드",
                         data=st.session_state["generated_itinerary"],
