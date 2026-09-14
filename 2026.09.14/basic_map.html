@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_56e446cf6b1fd779cfeb91c3346ee3fa {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_56e446cf6b1fd779cfeb91c3346ee3fa" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_56e446cf6b1fd779cfeb91c3346ee3fa = L.map(
+                "map_56e446cf6b1fd779cfeb91c3346ee3fa",
+                {
+                    center: [37.569975, 126.98947500000001],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_89426b16453cd4908da3763be1d39280 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 18,
+  "maxNativeZoom": 18,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_89426b16453cd4908da3763be1d39280.addTo(map_56e446cf6b1fd779cfeb91c3346ee3fa);
+        
+    
+            var marker_cf92bc62cf633676d48e636fce32664e = L.marker(
+                [37.5796, 126.977],
+                {
+}
+            ).addTo(map_56e446cf6b1fd779cfeb91c3346ee3fa);
+        
+    
+            var icon_89535921c5fb900dfbcebb0ffa1a053b = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "fort-awesome",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9ad9dcb1c660ea9400f30ac60afc678b = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_e84ed51d723efbb881ecda74484d6dd9 = $(`<div id="html_e84ed51d723efbb881ecda74484d6dd9" style="width: 100.0%; height: 100.0%;"><b>경복궁</b></div>`)[0];
+                popup_9ad9dcb1c660ea9400f30ac60afc678b.setContent(html_e84ed51d723efbb881ecda74484d6dd9);
+            
+        
+
+        marker_cf92bc62cf633676d48e636fce32664e.bindPopup(popup_9ad9dcb1c660ea9400f30ac60afc678b)
+        ;
+
+        
+    
+    
+            marker_cf92bc62cf633676d48e636fce32664e.bindTooltip(
+                `<div>
+                     경복궁
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_cf92bc62cf633676d48e636fce32664e.setIcon(icon_89535921c5fb900dfbcebb0ffa1a053b);
+            
+    
+            var marker_6e85500a15a656c76a7cfca1b6a7a8d3 = L.marker(
+                [37.5512, 126.9882],
+                {
+}
+            ).addTo(map_56e446cf6b1fd779cfeb91c3346ee3fa);
+        
+    
+            var icon_9546c15b3efa2a4623fe3bd9a68c149f = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "tower-broadcast",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a5fa98a06b836693ae4579b7b2c200ee = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_e91e92395f93f7fd07a0dcf182d3e241 = $(`<div id="html_e91e92395f93f7fd07a0dcf182d3e241" style="width: 100.0%; height: 100.0%;"><b>N서울타워</b></div>`)[0];
+                popup_a5fa98a06b836693ae4579b7b2c200ee.setContent(html_e91e92395f93f7fd07a0dcf182d3e241);
+            
+        
+
+        marker_6e85500a15a656c76a7cfca1b6a7a8d3.bindPopup(popup_a5fa98a06b836693ae4579b7b2c200ee)
+        ;
+
+        
+    
+    
+            marker_6e85500a15a656c76a7cfca1b6a7a8d3.bindTooltip(
+                `<div>
+                     N서울타워
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_6e85500a15a656c76a7cfca1b6a7a8d3.setIcon(icon_9546c15b3efa2a4623fe3bd9a68c149f);
+            
+    
+            var marker_1f5a05acf8e1846287ee246571bb3659 = L.marker(
+                [37.5826, 126.9835],
+                {
+}
+            ).addTo(map_56e446cf6b1fd779cfeb91c3346ee3fa);
+        
+    
+            var icon_041164cd825848aaf4ed836701bd4dfc = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "darkgreen",
+  "iconColor": "white",
+  "icon": "house",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_991d5a37cdc1b12d6a7b78c3c313ed1c = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_9c662814ef7a0b6ee37d89d4d0446f7b = $(`<div id="html_9c662814ef7a0b6ee37d89d4d0446f7b" style="width: 100.0%; height: 100.0%;"><b>북촌한옥마을</b></div>`)[0];
+                popup_991d5a37cdc1b12d6a7b78c3c313ed1c.setContent(html_9c662814ef7a0b6ee37d89d4d0446f7b);
+            
+        
+
+        marker_1f5a05acf8e1846287ee246571bb3659.bindPopup(popup_991d5a37cdc1b12d6a7b78c3c313ed1c)
+        ;
+
+        
+    
+    
+            marker_1f5a05acf8e1846287ee246571bb3659.bindTooltip(
+                `<div>
+                     북촌한옥마을
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_1f5a05acf8e1846287ee246571bb3659.setIcon(icon_041164cd825848aaf4ed836701bd4dfc);
+            
+    
+            var marker_473fecd4217e789948ea9646ba1628aa = L.marker(
+                [37.5665, 127.0092],
+                {
+}
+            ).addTo(map_56e446cf6b1fd779cfeb91c3346ee3fa);
+        
+    
+            var icon_39ed2ed52a1e5512a5a3486e14690997 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "purple",
+  "iconColor": "white",
+  "icon": "palette",
+  "prefix": "fa",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8c222338182978e9fed38a4882b30857 = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_dca4eed2158061d57dfb898a16d36834 = $(`<div id="html_dca4eed2158061d57dfb898a16d36834" style="width: 100.0%; height: 100.0%;"><b>동대문디자인플라자(DDP)</b></div>`)[0];
+                popup_8c222338182978e9fed38a4882b30857.setContent(html_dca4eed2158061d57dfb898a16d36834);
+            
+        
+
+        marker_473fecd4217e789948ea9646ba1628aa.bindPopup(popup_8c222338182978e9fed38a4882b30857)
+        ;
+
+        
+    
+    
+            marker_473fecd4217e789948ea9646ba1628aa.bindTooltip(
+                `<div>
+                     동대문디자인플라자(DDP)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_473fecd4217e789948ea9646ba1628aa.setIcon(icon_39ed2ed52a1e5512a5a3486e14690997);
+            
+</script>
+</html>
