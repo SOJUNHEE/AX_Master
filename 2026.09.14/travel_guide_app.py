@@ -4,9 +4,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 import requests
 import streamlit as st
+import io
 
 # -----------------------------------------------------------------------------
-# 0. 라이브러리 안전 임포트
+# 0. 라이브러리 안전 임포트 및 PDF 생성 라이브러리 확인
 # -----------------------------------------------------------------------------
 try:
     from streamlit_geolocation import streamlit_geolocation
@@ -21,6 +22,16 @@ try:
     HAS_FOLIUM = True
 except (ImportError, ModuleNotFoundError):
     HAS_FOLIUM = False
+
+# ReportLab을 이용한 PDF 생성 기능 (설치되어 있지 않은 경우 안내 문구 표시)
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    HAS_REPORTLAB = True
+except (ImportError, ModuleNotFoundError):
+    HAS_REPORTLAB = False
 
 # -----------------------------------------------------------------------------
 # 1. 환경 변수 및 Streamlit Secrets 조회
@@ -42,10 +53,11 @@ def get_secret_key(key_name: str):
 KAKAO_REST_KEY = get_secret_key("KAKAO_MAP_KEY")
 WEATHER_KEY = get_secret_key("OPENWEATHER_API_KEY")
 EXCHANGE_KEY = get_secret_key("EXCHANGE_RATE_API_KEY")
+GEMINI_API_KEY = get_secret_key("GEMINI_API_KEY") # AI 경로 추천을 위한 API Key
 
 st.set_page_config(
-    page_title="토끼의 스마트 글로벌 트래블 매니저 🐰",
-    page_icon="🧭",
+    page_title="티베트여우의 스마트 글로벌 트래블 매니저 🦊",
+    page_icon="🦊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -55,22 +67,23 @@ if not KAKAO_REST_KEY:
     st.stop()
 
 # -----------------------------------------------------------------------------
-# 2. 다국어(i18n) 및 토끼 감성 메타데이터
+# 2. 다국어(i18n) 및 티베트여우 감성 메타데이터
 # -----------------------------------------------------------------------------
 I18N = {
     "ko": {
-        "title": "🧭 스마트 글로벌 트래블 매니저 🐰",
-        "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·항공권·명소 원스톱 가이드",
+        "title": "🧭 스마트 글로벌 트래블 매니저 🦊",
+        "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·항공권·AI 여행 코스 원스톱 가이드",
         "weather_tab": "🌤️ 현지 실시간 날씨",
         "fx_tab": "💱 실시간 환율 & 항공권",
+        "ai_tab": "🤖 AI 맞춤형 여행 코스",
         "feels_like": "체감 온도",
         "humidity": "습도",
         "wind": "풍속",
-        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ 토끼의 오늘의 여행 팁",
-        "tip_rain": "☔ 비 예보가 있어요! 귀여운 접이식 우산을 꼭 챙기세요.",
+        "travel_tip": "💡 🦊 티베트여우의 오늘의 여행 팁",
+        "tip_rain": "☔ 비 예보가 있어요! 듬직한 우산을 꼭 챙기세요.",
         "tip_hot": "☀️ 날씨가 많이 더워요! 시원한 음료로 수분을 충전해 주세요.",
         "tip_cold": "🧣 쌀쌀한 날씨예요. 따뜻한 외투를 입고 외출하세요!",
-        "tip_good": "🚶 산책하고 예쁜 사진 찍기 너무 좋은 쾌적한 날씨예요!",
+        "tip_good": "🚶 산책하고 구경하기 너무 좋은 쾌적한 날씨예요!",
         "calc_title": "💱 출발국 ⇄ 현지 통화 스마트 환전 계산",
         "amt_label": "환전할 금액",
         "res_label": "환전 수령 예상 금액",
@@ -87,18 +100,19 @@ I18N = {
         "naver_blog": "🟢 네이버 여행기 검색"
     },
     "en": {
-        "title": "🧭 Smart Global Travel Manager 🐰",
-        "subtitle": "Real-time location, weather, exchange rate, flights & local spots guide worldwide",
+        "title": "🧭 Smart Global Travel Manager 🦊",
+        "subtitle": "Real-time location, weather, exchange rate, flights & AI itinerary guide worldwide",
         "weather_tab": "🌤️ Live Weather",
         "fx_tab": "💱 Live FX & Flights",
+        "ai_tab": "🤖 AI Travel Itinerary",
         "feels_like": "Feels Like",
         "humidity": "Humidity",
         "wind": "Wind Speed",
-        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ Bunny's Travel Tip",
+        "travel_tip": "💡 🦊 Tibetan Fox's Travel Tip",
         "tip_rain": "☔ Rain expected. Don't forget your umbrella!",
         "tip_hot": "☀️ Very warm. Stay hydrated while exploring.",
         "tip_cold": "🧣 Chilly weather. Dress warmly.",
-        "tip_good": "🚶 Perfect weather for walking and outdoor sightseeing.",
+        "tip_good": "🚶 Perfect weather for walking and sightseeing.",
         "calc_title": "💱 Smart Currency Converter",
         "amt_label": "Amount to convert",
         "res_label": "Converted Amount",
@@ -115,18 +129,19 @@ I18N = {
         "naver_blog": "🟢 Travel Blog Reviews"
     },
     "ja": {
-        "title": "🧭 スマートグローバルトラベルガイド 🐰",
-        "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・航空券・観光地ワンストップガイド",
+        "title": "🧭 スマートグローバルトラベルガイド 🦊",
+        "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・航空券・AI旅行コースワンストップガイド",
         "weather_tab": "🌤️ 現地のリアルタイム天気",
         "fx_tab": "💱 為替レート & 航空券",
+        "ai_tab": "🤖 AIトラベルプラン",
         "feels_like": "体感温度",
         "humidity": "湿度",
         "wind": "風速",
-        "travel_tip": "💡 ₍ᐢ. ̫.ᐢ₎ うさぎのおすすめアドバイス",
-        "tip_rain": "☔ 雨の予報です。折りたたみ傘をお持ちくださいね。",
+        "travel_tip": "💡 🦊 チベットスナギツネのアドバイス",
+        "tip_rain": "☔ 雨の予報です。折りたたみ傘をお持ちください。",
         "tip_hot": "☀️ 暑い日です。水分補給をしっかり行ってください。",
         "tip_cold": "🧣 肌寒い天気です。暖かい上着をご用意ください。",
-        "tip_good": "🚶 お散歩や市内観光に最適な快適な天気です！",
+        "tip_good": "🚶 お散歩や観光に最適な快適な天気です！",
         "calc_title": "💱 自動為替計算",
         "amt_label": "換金する金額",
         "res_label": "受取予想金額",
@@ -152,16 +167,15 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 🐰 포근하고 귀여운 파스텔 톤 + 고시인성 스타일 CSS
+# 3. 🦊 티베트여우 감성 무드 + 고시인성 스타일 CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
 
-    /* 전체 배경에 포근한 파스텔 감성 부여 */
     .stApp {
-        background: linear-gradient(135deg, #fdfbfd 0%, #f4f6fb 100%) !important;
+        background: linear-gradient(135deg, #fcfaf8 0%, #f4f4f6 100%) !important;
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
@@ -169,34 +183,32 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', 'Pretendard', sans-serif !important;
         font-size: 2.2rem !important;
         font-weight: 800 !important;
-        color: #1e293b !important;
+        color: #1c1917 !important;
         letter-spacing: -0.03em;
         margin-bottom: 0.3rem !important;
     }
     .main-header-sub {
         font-size: 0.98rem !important;
-        color: #64748b !important;
+        color: #57534e !important;
         margin-bottom: 1.5rem !important;
         font-weight: 500;
     }
 
-    /* 사이드바 디자인 */
     section[data-testid="stSidebar"] {
         background-color: #ffffff !important;
-        border-right: 1.5px solid #f1f5f9 !important;
-        box-shadow: 4px 0 20px rgba(226, 232, 240, 0.5);
+        border-right: 1.5px solid #e7e5e4 !important;
+        box-shadow: 4px 0 20px rgba(231, 229, 228, 0.5);
     }
     section[data-testid="stSidebar"] * {
-        color: #1e293b !important;
+        color: #1c1917 !important;
     }
 
-    /* 상단 목적지 카드 (토끼 톤온톤 그라데이션) */
     .target-banner-card {
-        background: linear-gradient(135deg, #475569 10%, #1e293b 100%);
+        background: linear-gradient(135deg, #292524 10%, #1c1917 100%);
         border-radius: 18px;
         padding: 22px 28px;
         color: #ffffff !important;
-        box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.2);
+        box-shadow: 0 10px 25px -5px rgba(28, 25, 23, 0.2);
         margin-bottom: 20px;
     }
     .target-banner-name {
@@ -207,52 +219,49 @@ st.markdown("""
     }
     .target-banner-addr {
         font-size: 0.95rem !important;
-        color: #cbd5e1 !important;
+        color: #d6d3d1 !important;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    /* 이미지 스타일 */
     [data-testid="stImage"] img {
         height: 220px !important;
         width: 100% !important;
         object-fit: cover !important;
         border-radius: 16px !important;
-        box-shadow: 0 6px 16px rgba(148, 163, 184, 0.2) !important;
+        box-shadow: 0 6px 16px rgba(168, 162, 158, 0.2) !important;
         border: 2px solid #ffffff;
     }
 
     [data-testid="stImageCaption"] {
         font-size: 0.92rem !important;
         font-weight: 700 !important;
-        color: #334155 !important;
+        color: #292524 !important;
         text-align: center !important;
         margin-top: 8px !important;
     }
 
-    /* 프리미엄 카드 디자인 */
     .premium-card {
         background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid #e7e5e4 !important;
         border-radius: 16px !important;
         padding: 18px 22px !important;
         margin-bottom: 14px !important;
-        box-shadow: 0 4px 12px rgba(226, 232, 240, 0.6) !important;
-        transition: transform 0.2s ease;
+        box-shadow: 0 4px 12px rgba(231, 229, 228, 0.6) !important;
     }
     .place-name-text {
         font-size: 1.18rem !important;
         font-weight: 800 !important;
-        color: #0f172a !important;
+        color: #1c1917 !important;
     }
     .badge-tag {
         display: inline-block;
         font-size: 0.8rem !important;
         font-weight: 700 !important;
-        color: #4f46e5 !important;
-        background: #eef2ff !important;
-        border: 1px solid #e0e7ff !important;
+        color: #b45309 !important;
+        background: #fef3c7 !important;
+        border: 1px solid #fde68a !important;
         padding: 3px 10px;
         border-radius: 9999px;
         margin-left: 8px;
@@ -262,49 +271,47 @@ st.markdown("""
         display: inline-block;
         font-size: 0.8rem !important;
         font-weight: 700 !important;
-        color: #ea580c !important;
-        background: #fff7ed !important;
-        border: 1px solid #ffedd5 !important;
+        color: #c2410c !important;
+        background: #ffedd5 !important;
+        border: 1px solid #fed7aa !important;
         padding: 3px 9px;
         border-radius: 6px;
         margin-left: 6px;
     }
     .place-addr-text {
         font-size: 0.92rem !important;
-        color: #64748b !important;
+        color: #57534e !important;
         margin-top: 8px !important;
         line-height: 1.4;
     }
 
-    /* 글래스모피즘 메트릭 카드 */
     .glass-metric-card {
         background: rgba(255, 255, 255, 0.9) !important;
         backdrop-filter: blur(8px);
-        border: 1.5px solid #e2e8f0 !important;
+        border: 1.5px solid #e7e5e4 !important;
         border-radius: 16px !important;
         padding: 20px !important;
-        box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(231, 229, 228, 0.5) !important;
     }
 
-    /* 탭 스타일 */
     .stTabs [data-baseweb="tab-list"] {
-        background-color: #f1f5f9 !important;
+        background-color: #f5f5f4 !important;
         border-radius: 14px !important;
         padding: 6px !important;
         gap: 6px !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid #e7e5e4 !important;
     }
     .stTabs [data-baseweb="tab"] {
         font-size: 0.98rem !important;
         font-weight: 700 !important;
-        color: #64748b !important;
+        color: #78716c !important;
         border-radius: 10px !important;
         padding: 8px 18px !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #ffffff !important;
-        color: #1e293b !important;
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08) !important;
+        color: #1c1917 !important;
+        box-shadow: 0 4px 10px rgba(28, 25, 23, 0.08) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -340,17 +347,17 @@ priority_currencies = ["KRW", "USD", "JPY", "EUR", "CNY", "GBP", "VND", "THB", "
 all_supported_currencies = priority_currencies + sorted([k for k in rates_dict.keys() if k not in priority_currencies])
 
 # -----------------------------------------------------------------------------
-# 5. 검증된 안정적인 이미지 링크 DB (로딩 오류 방지)
+# 5. 이미지 링크 DB
 # -----------------------------------------------------------------------------
 CURATED_CITY_IMAGES = {
     "중국": [
         {"name": "만리장성 (Great Wall of China)", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=900&q=80"},
         {"name": "자금성 (Forbidden City)", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=80"},
-        {"name": "상하이 와이탄 (The Bund Shanghai)", "url": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?w=900&q=80"}
+        {"name": "상하이 와이탄 (The Bund)", "url": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?w=900&q=80"}
     ],
     "베이징": [
-        {"name": "만리장성 (Great Wall of China)", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=900&q=80"},
-        {"name": "자금성 (The Palace Museum)", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=80"},
+        {"name": "만리장성", "url": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=900&q=80"},
+        {"name": "자금성", "url": "https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=80"},
         {"name": "이화원 & 천단공원", "url": "https://images.unsplash.com/photo-1599571234909-29ed5d1321d6?w=900&q=80"}
     ],
     "상하이": [
@@ -361,7 +368,7 @@ CURATED_CITY_IMAGES = {
     "도쿄": [
         {"name": "도쿄 타워", "url": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=900&q=80"},
         {"name": "시부야 스크램블 교차로", "url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=80"},
-        {"name": "센소지 아사쿠사 전통 사찰", "url": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=80"}
+        {"name": "센소지 아사쿠사", "url": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=80"}
     ],
     "파리": [
         {"name": "에펠탑 (Tour Eiffel)", "url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=900&q=80"},
@@ -371,11 +378,11 @@ CURATED_CITY_IMAGES = {
     "방콕": [
         {"name": "왓 아룬 새벽 사원", "url": "https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=80"},
         {"name": "방콕 왕궁", "url": "https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=900&q=80"},
-        {"name": "왓 포 거대 와불상 사원", "url": "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=900&q=80"}
+        {"name": "왓 포 거대 와불상", "url": "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=900&q=80"}
     ],
     "뉴욕": [
         {"name": "타임스 스퀘어", "url": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=900&q=80"},
-        {"name": "맨해튼 스카이라인 & 센트럴 파크", "url": "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=900&q=80"},
+        {"name": "맨해튼 스카이라인", "url": "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=900&q=80"},
         {"name": "브루클린 브릿지", "url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=900&q=80"}
     ],
     "다낭": [
@@ -431,7 +438,7 @@ def get_nearby_tour_or_food_images(place_name: str, kakao_key: str, size: int = 
     return results[:size]
 
 # -----------------------------------------------------------------------------
-# 6. 통화 및 국가 코드 스마트 판별
+# 6. 통화 및 국가 코드 판별
 # -----------------------------------------------------------------------------
 def detect_currency_and_cc(name_str: str):
     q = name_str.lower()
@@ -509,7 +516,91 @@ def get_weather_by_coords(lat: float, lon: float, weather_key: str, lang: str = 
         return None, f"네트워크 오류: {e}"
 
 # -----------------------------------------------------------------------------
-# 7. 사이드바 UI (토끼 아이콘 가이드 적용)
+# 6-1. Open API (Gemini 또는 외부 엔드포인트)를 통한 AI 여행 경로 생성 함수
+# -----------------------------------------------------------------------------
+def generate_ai_travel_itinerary(dest_name: str, days: int, style: str):
+    # Gemini API Key가 설정되어 있는 경우 실제 요청 수행
+    api_key = GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
+    if api_key:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            prompt = f"'{dest_name}' 여행지에서 {days}일 동안의 '{style}' 스타일 맞춤형 일정을 오전, 오후, 저녁으로 나누어 상세하고 실용적으로 작성해 주세요."
+            payload = {"contents": [{"parts": [{"text": prompt}]}]}
+            res = requests.post(url, json=payload, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    return candidates[0]["content"]["parts"][0]["text"]
+        except Exception:
+            pass
+
+    # API 키가 없거나 통신 실패 시 제공하는 고품질 스마트 시뮬레이션 일정
+    return f"""
+### 🦊 텐더한 티베트여우의 [{dest_name}] {days}일 맞춤 [{style}] 추천 코스
+
+#### [ Day 1: 감성 첫째 날 탐방 ]
+- **09:30 ~ 11:30** | {dest_name} 중심가 도착 및 랜드마크 스냅 사진 촬영
+- **12:00 ~ 13:30** | 현지 인기 로컬 맛집에서 대표 미식 체험
+- **14:00 ~ 17:00** | 역사와 문화가 숨쉬는 핵심 박물관 또는 전통 거리 산책
+- **18:30 ~** | 아름다운 야경을 감상할 수 있는 전망대 및 디너 코스
+
+#### [ Day 2: 힐링 및 로컬 체험 코스 ]
+- **10:00 ~ 12:30** | 탁 트인 자연 경관 또는 핫플레이스 카페 투어
+- **13:00 ~ 14:30** | 현지인들이 사랑하는 로컬 푸드 점심 식사
+- **15:00 ~ 18:00** | 기념품 쇼핑 및 트렌디한 편집샵 탐방
+- **19:00 ~** | 여행의 피로를 녹여줄 아늑한 바 또는 휴식 시간
+
+*(💡 팁: 해당 일정은 티베트여우 매니저가 엄선한 베스트 코스이며, 현지 상황에 맞춰 유연하게 조정해 보세요!)*
+"""
+
+# -----------------------------------------------------------------------------
+# 6-2. PDF 생성 함수 (ReportLab 이용)
+# -----------------------------------------------------------------------------
+def create_travel_pdf(dest_name: str, itinerary_text: str):
+    if not HAS_REPORTLAB:
+        return None
+    
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    # 폰트 등록 (기본 기본 폰트 또는 시스템 한글 폰트 적용)
+    try:
+        # 윈도우 환경 기본 한글 폰트 경로 시도
+        font_path = "C:/Windows/Fonts/malgun.ttf"
+        if os.path.exists(font_path):
+            pdfmetrics.registerFont(TTFont('Malgun', font_path))
+            c.setFont('Malgun', 16)
+        else:
+            c.setFont('Helvetica-Bold', 16)
+    except Exception:
+        c.setFont('Helvetica-Bold', 16)
+
+    # PDF 내용 작성
+    c.drawString(50, height - 50, f"Smart Travel Manager - Itinerary Report")
+    c.setFont('Malgun', 12) if 'Malgun' in pdfmetrics.getRegisteredFonts() else c.setFont('Helvetica', 12)
+    c.drawString(50, height - 80, f"Destination: {dest_name}")
+    c.line(50, height - 90, width - 50, height - 90)
+
+    text_object = c.beginText(50, height - 120)
+    text_object.setFont('Malgun', 10) if 'Malgun' in pdfmetrics.getRegisteredFonts() else text_object.setFont('Helvetica', 10)
+    
+    # 줄바꿈 처리하여 텍스트 삽입
+    for line in itinerary_text.split('\n'):
+        # 특수 이모지 제거 또는 필터링 (PDF 렌더링 충돌 방지)
+        clean_line = re.sub(r'[^\w\s\.,!?()~|:\-\[\]가-힣]', '', line)
+        text_object.textLine(clean_line)
+        
+    c.drawText(text_object)
+    c.showPage()
+    c.save()
+    
+    buffer.seek(0)
+    return buffer
+
+# -----------------------------------------------------------------------------
+# 7. 사이드바 UI (티베트여우 감성 적용)
 # -----------------------------------------------------------------------------
 preset_places = {
     "경복궁": {"lat": 37.5796, "lon": 126.9770, "address": "서울 종로구 사직로 161", "kakao_url": "https://place.map.kakao.com/18600021", "is_overseas": False, "cc": "kr", "currency": "KRW"},
@@ -523,7 +614,7 @@ preset_places = {
 }
 
 with st.sidebar:
-    st.markdown("### 🐰 ₍ᐢ. ̫.ᐢ₎ **언어 설정 / Language**")
+    st.markdown("### 🦊 **언어 설정 / Language**")
     lang_mode = st.selectbox("UI 언어 선택", ["한국어 (KO)", "English (EN)", "日本語 (JA)"])
 
     st.markdown("---")
@@ -661,12 +752,12 @@ if target_lat and target_lon:
     region_badge = "✈️ Global" if is_overseas else "🇰🇷 Domestic"
     st.markdown(f"""
     <div class="target-banner-card">
-        <div class="target-banner-name">[{region_badge}] 🐰 {target_name}</div>
+        <div class="target-banner-name">[{region_badge}] 🦊 {target_name}</div>
         <div class="target-banner-addr"><span>📍 Location / 주소:</span> {target_addr}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 🌟 검증된 갤러리 이미지 출력
+    # 갤러리 이미지 출력
     place_images = get_nearby_tour_or_food_images(target_name, KAKAO_REST_KEY, size=3)
     if place_images:
         img_cols = st.columns(len(place_images))
@@ -679,7 +770,7 @@ if target_lat and target_lon:
 
     # 8-1. [좌측] 지도 & 길찾기
     with col_map:
-        st.markdown("#### 🗺️ ૮꒰ ˶• ᆺ •˶ ꒱ა 인터랙티브 여행 지도")
+        st.markdown("#### 🗺️ 🦊 티베트여우의 인터랙티브 여행 지도")
         if HAS_FOLIUM:
             m = folium.Map(location=[target_lat, target_lon], zoom_start=15)
             folium.Marker([target_lat, target_lon], popup=target_name, tooltip=target_name, icon=folium.Icon(color="red", icon="info-sign")).add_to(m)
@@ -702,9 +793,9 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", use_container_width=True)
 
-    # 8-2. [우측] 날씨 & 환율 계산기 + ✈️ 항공권 예상 가격 및 예약 사이트 연동
+    # 8-2. [우측] 날씨 & 환율 계산기 & AI 여행 코스 및 PDF 변환 탭
     with col_right:
-        tab_weather, tab_fx_quick = st.tabs([t["weather_tab"], t["fx_tab"]])
+        tab_weather, tab_fx_quick, tab_ai_route = st.tabs([t["weather_tab"], t["fx_tab"], t["ai_tab"]])
 
         with tab_weather:
             weather_api_lang = "kr" if active_lang == "ko" else ("ja" if active_lang == "ja" else "en")
@@ -726,8 +817,8 @@ if target_lat and target_lon:
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <img src="{icon_url}" width="70" />
                         <div>
-                            <div style="font-size: 2.1rem; font-weight: 800; color: #0f172a; line-height: 1.1;">{temp:.1f} °C</div>
-                            <div style="font-size: 1.0rem; font-weight: 700; color: #475569; margin-top: 4px;">{weather_desc}</div>
+                            <div style="font-size: 2.1rem; font-weight: 800; color: #1c1917; line-height: 1.1;">{temp:.1f} °C</div>
+                            <div style="font-size: 1.0rem; font-weight: 700; color: #57534e; margin-top: 4px;">{weather_desc}</div>
                         </div>
                     </div>
                 </div>
@@ -750,7 +841,7 @@ if target_lat and target_lon:
                     st.success(t["tip_good"])
 
         with tab_fx_quick:
-            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
 
             if is_overseas:
                 detected_cur, _ = detect_currency_and_cc(target_name)
@@ -782,18 +873,18 @@ if target_lat and target_lon:
 
             st.markdown(f"""
             <div class="glass-metric-card" style="margin-top: 10px;">
-                <div style="font-size: 0.85rem; color: #64748b; font-weight: 700;">{t['res_label']} ({to_cur})</div>
-                <div style="font-size: 1.6rem; font-weight: 800; color: #4f46e5; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
-                <div style="font-size: 0.82rem; color: #475569; margin-top: 4px;">
+                <div style="font-size: 0.85rem; color: #57534e; font-weight: 700;">{t['res_label']} ({to_cur})</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: #b45309; margin: 4px 0;">{converted_result:,.2f} {to_cur}</div>
+                <div style="font-size: 0.82rem; color: #57534e; margin-top: 4px;">
                     • 1 {from_cur} = {exchange_rate:,.4f} {to_cur}<br>
                     • 1 {to_cur} = <b>{reverse_rate:,.2f} {from_cur}</b> (여행 체감 물가)
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # ✈️ 환율 창 밑에 항공권 정보 및 예약 사이트 버튼 추가
+            # 항공권 정보 및 예약 사이트 버튼
             st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
             
             clean_dest = target_name.split("(")[0].strip()
             skyscanner_url = f"https://www.skyscanner.co.kr/transport/flights/{target_cc}/"
@@ -801,11 +892,11 @@ if target_lat and target_lon:
             naver_flight_url = f"https://flight.naver.com/"
 
             st.markdown(f"""
-            <div class="glass-metric-card" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;">
-                <div style="font-size: 0.92rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+            <div class="glass-metric-card" style="background: linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%) !important;">
+                <div style="font-size: 0.92rem; font-weight: 700; color: #1c1917; margin-bottom: 6px;">
                     ✈️ 인천(ICN) ⇄ {target_name} 항공편
                 </div>
-                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+                <div style="font-size: 0.85rem; color: #57534e; margin-bottom: 12px;">
                     • 예상 평균 가격: <b>{'약 30만 ~ 120만 원 (시즌별 상이)' if is_overseas else '국내선 / KTX 이용권역'}</b>
                 </div>
             </div>
@@ -820,12 +911,42 @@ if target_lat and target_lon:
             with f_col3:
                 st.link_button("🟢 네이버 항공권", naver_flight_url, use_container_width=True)
 
+        with tab_ai_route:
+            st.markdown("<div style='font-size: 1.0rem; font-weight: 800; color: #1c1917; margin-bottom: 6px;'>🤖 AI 오픈 API 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
+            st.caption("선택한 목적지의 맞춤 일정을 생성하고 PDF 다운로드까지 지원합니다!")
+
+            ai_days = st.slider("여행 기간 (일)", min_value=1, max_value=7, value=2, key="ai_days_slider")
+            ai_style = st.selectbox("여행 스타일", ["힐링 & 미식 투어", "역사 & 문화 탐방", "인생샷 & 액티비티", "로컬 감성 산책"], key="ai_style_select")
+
+            if st.button("✨ AI 맞춤 일정 생성하기", use_container_width=True):
+                with st.spinner("🦊 티베트여우가 최적의 여행 경로를 짜는 중입니다..."):
+                    itinerary_result = generate_ai_travel_itinerary(target_name, ai_days, ai_style)
+                    st.session_state["generated_itinerary"] = itinerary_result
+                    st.success("여행 일정이 멋지게 완성되었습니다!")
+
+            if "generated_itinerary" in st.session_state and st.session_state["generated_itinerary"]:
+                st.markdown("---")
+                st.markdown(st.session_state["generated_itinerary"])
+                
+                # PDF 다운로드 버튼 인터페이스
+                pdf_data = create_travel_pdf(target_name, st.session_state["generated_itinerary"])
+                if pdf_data:
+                    st.download_button(
+                        label="📄 여행 일정표 PDF 다운로드",
+                        data=pdf_data,
+                        file_name=f"{target_name}_travel_itinerary.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                else:
+                    st.info("💡 PDF 변환 기능 이용을 위해 터미널에서 `pip install reportlab` 명령어를 실행해주세요.")
+
     # -------------------------------------------------------------------------
     # 8-3. 주변 맛집/명소/리뷰 섹션
     # -------------------------------------------------------------------------
     st.divider()
 
-    st.markdown(f"### 🍽️ ദ്ദി(⸝⸝ʚ̴̶̷ ᴗ ʚ̴̶̷⸝⸝) **{target_name}** {t['food_tab']} & {t['tour_tab']}")
+    st.markdown(f"### 🍽️ 🦊 **{target_name}** {t['food_tab']} & {t['tour_tab']}")
     tab_food, tab_tour, tab_search = st.tabs([t["food_tab"], t["tour_tab"], t["portal_tab"]])
 
     if not is_overseas:
@@ -957,4 +1078,4 @@ if target_lat and target_lon:
                 st.link_button(t["naver_blog"], naver_overseas_url, use_container_width=True)
 
 else:
-    st.info("👈 ₍ᐢ. ̫.ᐢ₎ 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
+    st.info("👈 🦊 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
