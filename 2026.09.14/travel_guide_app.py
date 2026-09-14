@@ -72,9 +72,9 @@ I18N = {
     "ko": {
         "title": "🧭 스마트 글로벌 트래블 매니저",
         "subtitle": "전 세계 도시 & 국내 전역 실시간 위치 기반 날씨·환율·항공권·AI 여행 코스 원스톱 가이드",
-        "weather_tab": "🌤️ 현지 실시간 날씨",
-        "fx_tab": "💱 실시간 환율 & 항공권",
-        "ai_tab": "🤖 AI 맞춤형 여행 코스",
+        "weather_tab": "🌤️ 실시간 날씨",
+        "fx_tab": "💱 환율 & 항공권",
+        "ai_tab": "🤖 AI 맞춤 코스",
         "feels_like": "체감 온도",
         "humidity": "습도",
         "wind": "풍속",
@@ -101,9 +101,9 @@ I18N = {
     "en": {
         "title": "🧭 Smart Global Travel Manager",
         "subtitle": "Real-time location, weather, exchange rate, flights & AI itinerary guide worldwide",
-        "weather_tab": "🌤️ Live Weather",
-        "fx_tab": "💱 Live FX & Flights",
-        "ai_tab": "🤖 AI Travel Itinerary",
+        "weather_tab": "🌤️ Weather",
+        "fx_tab": "💱 FX & Flights",
+        "ai_tab": "🤖 AI Itinerary",
         "feels_like": "Feels Like",
         "humidity": "Humidity",
         "wind": "Wind Speed",
@@ -130,9 +130,9 @@ I18N = {
     "ja": {
         "title": "🧭 スマートグローバルトラベルガイド",
         "subtitle": "全世界の都市と韓国全域のリアルタイム天気・為替・航空券・AI旅行コースワンストップガイド",
-        "weather_tab": "🌤️ 現地のリアルタイム天気",
-        "fx_tab": "💱 為替レート & 航空券",
-        "ai_tab": "🤖 AIトラベルプラン",
+        "weather_tab": "🌤️ 天気",
+        "fx_tab": "💱 為替 & 航空券",
+        "ai_tab": "🤖 AIプラン",
         "feels_like": "体感温度",
         "humidity": "湿度",
         "wind": "風速",
@@ -152,7 +152,7 @@ I18N = {
         "review_btn": "メニュー / レビュー",
         "detail_btn": "スポット詳細",
         "google_food": "🍽️ Google 人気グルメ",
-        "google_tour": "🏛️ 周辺観光名所",
+        "google_tour": "🏛️ 周辺観光名소",
         "tripadvisor": "🦉 トリップアドバイザー",
         "naver_blog": "🟢 旅行ブログ検索"
     }
@@ -166,7 +166,7 @@ GLOBAL_CURRENCY_NAMES = {
 }
 
 # -----------------------------------------------------------------------------
-# 3. 맥 창 스타일(macOS Window) 및 둥근 모서리(Border-Radius) 전용 CSS
+# 3. 맥 창 스타일 및 둥근 모서리 UI CSS
 # -----------------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -202,24 +202,17 @@ st.markdown("""
         color: #0f172a !important;
     }
 
-    /* 맥 윈도우 스타일 컨테이너 */
-    .mac-window {
-        background: #ffffff;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
-        overflow: hidden;
-        margin-bottom: 16px;
-    }
-    .mac-header {
+    /* 맥 창 스타일 바 (상단 타이틀바) */
+    .mac-window-bar {
         background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-bottom: none;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
         padding: 10px 16px;
         display: flex;
         align-items: center;
         gap: 8px;
-        border-bottom: 1.5px solid #e2e8f0;
-        border-top-left-radius: 16px;
-        border-top-right-radius: 16px;
     }
     .mac-dot {
         width: 12px;
@@ -236,8 +229,16 @@ st.markdown("""
         color: #64748b;
         margin-left: 6px;
     }
-    .mac-body {
+
+    /* 맥 창 본문 바디 스타일 */
+    .mac-window-content {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
         padding: 20px;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+        margin-bottom: 20px;
     }
 
     /* 배너 카드 */
@@ -248,19 +249,6 @@ st.markdown("""
         color: #ffffff !important;
         box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
         margin-bottom: 20px;
-    }
-    .target-banner-name {
-        font-size: 1.7rem !important;
-        font-weight: 800 !important;
-        color: #ffffff !important;
-        margin-bottom: 6px !important;
-    }
-    .target-banner-addr {
-        font-size: 0.95rem !important;
-        color: #94a3b8 !important;
-        display: flex;
-        align-items: center;
-        gap: 6px;
     }
 
     /* 이미지 둥글게 */
@@ -334,7 +322,7 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(226, 232, 240, 0.5) !important;
     }
 
-    /* 탭 스타일: 완전히 둥글고 부드럽게 개선 (흰색 박스 이질감 제거) */
+    /* 탭 스타일 최적화 */
     .stTabs [data-baseweb="tab-list"] {
         background-color: #e2e8f0 !important;
         border-radius: 16px !important;
@@ -343,13 +331,14 @@ st.markdown("""
         border: 1.5px solid #cbd5e1 !important;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 0.95rem !important;
+        font-size: 0.85rem !important;
         font-weight: 700 !important;
         color: #64748b !important;
         border-radius: 12px !important;
-        padding: 8px 16px !important;
+        padding: 6px 12px !important;
         background-color: transparent !important;
         border: none !important;
+        white-space: nowrap !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #ffffff !important;
@@ -359,7 +348,6 @@ st.markdown("""
         border-radius: 12px !important;
     }
 
-    /* 입력창 및 버튼 모서리 둥글게 */
     .stTextInput>div>div>input, .stSelectbox>div>div, .stNumberInput>div>div>input {
         border-radius: 12px !important;
     }
@@ -660,7 +648,6 @@ preset_places = {
 }
 
 with st.sidebar:
-    # 윈도우/맥 창 감성을 담은 사이드바 상단 데코
     st.markdown("""
         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
             <div class="mac-dot mac-dot-red"></div>
@@ -807,16 +794,15 @@ st.markdown(f'<div class="main-header-sub">{t["subtitle"]}</div>', unsafe_allow_
 if target_lat and target_lon:
     region_badge = "✈️ Global" if is_overseas else "🇰🇷 Domestic"
     
-    # 상단 배너에 맥 창 컨트롤러 적용
     st.markdown(f"""
-    <div class="mac-window">
-        <div class="mac-header">
+    <div style="margin-bottom: 20px;">
+        <div class="mac-window-bar">
             <div class="mac-dot mac-dot-red"></div>
             <div class="mac-dot mac-dot-yellow"></div>
             <div class="mac-dot mac-dot-green"></div>
             <span class="mac-title">travel-manager://{target_name}</span>
         </div>
-        <div class="mac-body" style="background: linear-gradient(135deg, #1e293b 10%, #0f172a 100%); border-radius: 0 0 16px 16px; padding: 20px 24px;">
+        <div style="background: linear-gradient(135deg, #1e293b 10%, #0f172a 100%); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; padding: 22px 28px; border: 1.5px solid #e2e8f0; border-top: none; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);">
             <div style="font-size: 1.7rem; font-weight: 800; color: #ffffff; margin-bottom: 6px;">[{region_badge}] {target_name}</div>
             <div style="font-size: 0.95rem; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
                 <span>📍 Location / 주소:</span> {target_addr}
@@ -825,7 +811,6 @@ if target_lat and target_lon:
     </div>
     """, unsafe_allow_html=True)
 
-    # 갤러리 이미지 출력 (맥 창 스타일 감성 부여)
     place_images = get_nearby_tour_or_food_images(target_name, KAKAO_REST_KEY, size=3)
     if place_images:
         img_cols = st.columns(len(place_images))
@@ -836,18 +821,17 @@ if target_lat and target_lon:
 
     col_map, col_right = st.columns([6, 4], gap="large")
 
-    # 8-1. [좌측] 지도 & 길찾기 (맥 창 껍데기로 포장)
+    # 8-1. [좌측] 지도 & 길찾기 (맥 창 인터페이스)
     with col_map:
         st.markdown("""
-            <div class="mac-window">
-                <div class="mac-header">
-                    <div class="mac-dot mac-dot-red"></div>
-                    <div class="mac-dot mac-dot-yellow"></div>
-                    <div class="mac-dot mac-dot-green"></div>
-                    <span class="mac-title">Interactive Map & Route</span>
-                </div>
-                <div class="mac-body" id="map-body-container">
-                    <div style="font-weight: 800; margin-bottom: 8px; color: #0f172a;">🗺️ 인터랙티브 여행 지도</div>
+            <div class="mac-window-bar">
+                <div class="mac-dot mac-dot-red"></div>
+                <div class="mac-dot mac-dot-yellow"></div>
+                <div class="mac-dot mac-dot-green"></div>
+                <span class="mac-title">Interactive Map & Route</span>
+            </div>
+            <div class="mac-window-content">
+                <div style="font-weight: 800; margin-bottom: 8px; color: #0f172a;">🗺️ 인터랙티브 여행 지도</div>
         """, unsafe_allow_html=True)
 
         if HAS_FOLIUM:
@@ -857,7 +841,7 @@ if target_lat and target_lon:
         else:
             st.map([{"lat": target_lat, "lon": target_lon}], zoom=14)
 
-        st.markdown('</div></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
         btn_col1, btn_col2 = st.columns(2)
         if not is_overseas:
@@ -874,20 +858,19 @@ if target_lat and target_lon:
             with btn_col2:
                 st.link_button("🧭 구글 길찾기", f"{google_map_link}&dirflg=d", use_container_width=True)
 
-    # 8-2. [우측] 날씨 & 환율 계산기 & AI 여행 코스 (맥 창 스타일 적용)
+    # 8-2. [우측] 날씨 & 환율 & AI 코스 (맥 창 인터페이스)
     with col_right:
         tab_weather, tab_fx_quick, tab_ai_route = st.tabs([t["weather_tab"], t["fx_tab"], t["ai_tab"]])
 
         with tab_weather:
             st.markdown("""
-                <div class="mac-window" style="margin-top: 10px;">
-                    <div class="mac-header">
-                        <div class="mac-dot mac-dot-red"></div>
-                        <div class="mac-dot mac-dot-yellow"></div>
-                        <div class="mac-dot mac-dot-green"></div>
-                        <span class="mac-title">Live Weather Info</span>
-                    </div>
-                    <div class="mac-body">
+                <div class="mac-window-bar" style="margin-top: 10px;">
+                    <div class="mac-dot mac-dot-red"></div>
+                    <div class="mac-dot mac-dot-yellow"></div>
+                    <div class="mac-dot mac-dot-green"></div>
+                    <span class="mac-title">Live Weather Info</span>
+                </div>
+                <div class="mac-window-content">
             """, unsafe_allow_html=True)
 
             weather_api_lang = "kr" if active_lang == "ko" else ("ja" if active_lang == "ja" else "en")
@@ -932,18 +915,17 @@ if target_lat and target_lon:
                 else:
                     st.success(t["tip_good"])
             
-            st.markdown("</div></div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
         with tab_fx_quick:
             st.markdown("""
-                <div class="mac-window" style="margin-top: 10px;">
-                    <div class="mac-header">
-                        <div class="mac-dot mac-dot-red"></div>
-                        <div class="mac-dot mac-dot-yellow"></div>
-                        <div class="mac-dot mac-dot-green"></div>
-                        <span class="mac-title">Currency & Flights</span>
-                    </div>
-                    <div class="mac-body">
+                <div class="mac-window-bar" style="margin-top: 10px;">
+                    <div class="mac-dot mac-dot-red"></div>
+                    <div class="mac-dot mac-dot-yellow"></div>
+                    <div class="mac-dot mac-dot-green"></div>
+                    <span class="mac-title">Currency & Flights</span>
+                </div>
+                <div class="mac-window-content">
             """, unsafe_allow_html=True)
 
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['calc_title']}</div>", unsafe_allow_html=True)
@@ -987,7 +969,6 @@ if target_lat and target_lon:
             </div>
             """, unsafe_allow_html=True)
 
-            # 항공권 정보 및 예약 사이트 버튼
             st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>{t['flight_title']}</div>", unsafe_allow_html=True)
             
@@ -1016,18 +997,17 @@ if target_lat and target_lon:
             with f_col3:
                 st.link_button("🟢 네이버 항공권", naver_flight_url, use_container_width=True)
 
-            st.markdown("</div></div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
         with tab_ai_route:
             st.markdown("""
-                <div class="mac-window" style="margin-top: 10px;">
-                    <div class="mac-header">
-                        <div class="mac-dot mac-dot-red"></div>
-                        <div class="mac-dot mac-dot-yellow"></div>
-                        <div class="mac-dot mac-dot-green"></div>
-                        <span class="mac-title">AI Itinerary Generator</span>
-                    </div>
-                    <div class="mac-body">
+                <div class="mac-window-bar" style="margin-top: 10px;">
+                    <div class="mac-dot mac-dot-red"></div>
+                    <div class="mac-dot mac-dot-yellow"></div>
+                    <div class="mac-dot mac-dot-green"></div>
+                    <span class="mac-title">AI Itinerary Generator</span>
+                </div>
+                <div class="mac-window-content">
             """, unsafe_allow_html=True)
 
             st.markdown(f"<div style='font-size: 1.0rem; font-weight: 800; color: #0f172a; margin-bottom: 6px;'>🤖 AI 맞춤형 여행 일정 플래너</div>", unsafe_allow_html=True)
@@ -1064,22 +1044,21 @@ if target_lat and target_lon:
                         use_container_width=True
                     )
 
-            st.markdown("</div></div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
     # -------------------------------------------------------------------------
-    # 8-3. 주변 맛집/명소/리뷰 섹션 (맥 윈도우 창 인터페이스 적용)
+    # 8-3. 주변 맛집/명소/리뷰 섹션 (맥 창 인터페이스)
     # -------------------------------------------------------------------------
     st.divider()
 
-    st.markdown(f"""
-        <div class="mac-window">
-            <div class="mac-header">
-                <div class="mac-dot mac-dot-red"></div>
-                <div class="mac-dot mac-dot-yellow"></div>
-                <div class="mac-dot mac-dot-green"></div>
-                <span class="mac-title">Explore Spots & Reviews</span>
-            </div>
-            <div class="mac-body">
+    st.markdown("""
+        <div class="mac-window-bar">
+            <div class="mac-dot mac-dot-red"></div>
+            <div class="mac-dot mac-dot-yellow"></div>
+            <div class="mac-dot mac-dot-green"></div>
+            <span class="mac-title">Explore Spots & Reviews</span>
+        </div>
+        <div class="mac-window-content">
     """, unsafe_allow_html=True)
 
     st.markdown(f"### 🍽️ **{target_name}** {t['food_tab']} & {t['tour_tab']}")
@@ -1213,7 +1192,7 @@ if target_lat and target_lon:
             with sc4:
                 st.link_button(t["naver_blog"], naver_overseas_url, use_container_width=True)
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 else:
     st.info("👈 왼쪽 사이드바에서 원하는 목적지를 선택하거나 검색해 보세요!")
