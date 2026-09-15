@@ -73,6 +73,17 @@ macOS 느낌의 폴더·카드·화면 구성은 CSS/SVG로 직접 구현했습�
 
 `scm` 내용만 별도 저장소의 루트에 올리면 **Root Directory를 비워 두세요**.
 
+### `gunicorn: command not found` 오류 해결
+
+이 폴더의 `requirements.txt`에는 Flask와 Linux용 Gunicorn이 포함되어 있습니다. 설치 로그에 Streamlit만 있고 Flask/Gunicorn이 없다면 연결된 브랜치·커밋과 Root Directory를 확인하세요. `legacy/requirements.txt`는 현재 웹사이트의 배포용 파일이 아닙니다.
+
+1. 최신 `scm/app.py`, `scm/requirements.txt`, `scm/render.yaml`을 연결된 저장소에 반영합니다.
+2. 기존 Render 서비스의 Settings → Build & Deploy에서 위 표의 Root Directory와 Start Command를 적용합니다. 수동 생성 서비스는 로컬 `render.yaml` 수정만으로 설정이 바뀌지 않습니다.
+3. Build Command를 `python -m pip install -r requirements.txt && python -m pip check && python -m gunicorn --check-config app:app`으로 설정합니다. 의존성 설치와 앱 로딩을 배포 전에 검사합니다.
+4. 최신 커밋을 다시 배포하고 `/healthz` 응답이 `{"status":"ok"}`인지 확인합니다.
+
+기존 `gunicorn "app:create_app()"` 명령도 호환되지만 위 표의 `app:app` 명령을 권장합니다.
+
 ### Blueprint
 
 `render.yaml`도 포함했습니다. 현재 상위 저장소를 연결할 때 Blueprint 파일 경로는 `scm/render.yaml`, 설정의 `rootDir`는 `scm`입니다. `scm`을 독립 저장소로 만들면 `render.yaml`의 `rootDir: scm` 줄을 삭제하세요. Blueprint는 `SECRET_KEY`를 자동 생성합니다. 모든 Gunicorn worker는 동일한 키를 사용해야 합니다.

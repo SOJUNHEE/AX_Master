@@ -245,5 +245,10 @@ def headers(response):
     return response
 
 
+def create_app():
+    """Support hosts configured with the app:create_app() entry point."""
+    return app
+
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=int(os.environ.get('PORT',5000)), debug=False)
