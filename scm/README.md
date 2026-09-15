@@ -66,8 +66,8 @@ macOS 느낌의 폴더·카드·화면 구성은 CSS/SVG로 직접 구현했습�
 | --- | --- |
 | Runtime | Python |
 | Root Directory | `scm` |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60` |
+| Build Command | `python -m pip install -r requirements.txt && python -m pip check && python -c "from app import app; print('Flask app import OK')" && python -m gunicorn --check-config app:app` |
+| Start Command | `python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 --access-logfile - --error-logfile -` |
 | Health Check Path | `/healthz` |
 | Environment | `SECRET_KEY`: 무작위의 충분히 긴 비밀 문자열, `PYTHON_VERSION`: `3.13.5` |
 
@@ -75,14 +75,17 @@ macOS 느낌의 폴더·카드·화면 구성은 CSS/SVG로 직접 구현했습�
 
 ### `gunicorn: command not found` 오류 해결
 
+이 로그가 보이면 현재 Flask 배포 파일이 아닌 다른 `requirements.txt`를 설치했을 가능성이 큽니다. 특히 설치 로그에 `streamlit`, `numpy`, `pandas`, `matplotlib`, `plotly`, `python-pptx`가 보이고 `Flask`, `gunicorn`이 없다면 `legacy/requirements.txt` 또는 예전 커밋을 보고 있는 상태입니다.
+
+
 이 폴더의 `requirements.txt`에는 Flask와 Linux용 Gunicorn이 포함되어 있습니다. 설치 로그에 Streamlit만 있고 Flask/Gunicorn이 없다면 연결된 브랜치·커밋과 Root Directory를 확인하세요. `legacy/requirements.txt`는 현재 웹사이트의 배포용 파일이 아닙니다.
 
 1. 최신 `scm/app.py`, `scm/requirements.txt`, `scm/render.yaml`을 연결된 저장소에 반영합니다.
 2. 기존 Render 서비스의 Settings → Build & Deploy에서 위 표의 Root Directory와 Start Command를 적용합니다. 수동 생성 서비스는 로컬 `render.yaml` 수정만으로 설정이 바뀌지 않습니다.
-3. Build Command를 `python -m pip install -r requirements.txt && python -m pip check && python -m gunicorn --check-config app:app`으로 설정합니다. 의존성 설치와 앱 로딩을 배포 전에 검사합니다.
+3. Build Command를 `python -m pip install -r requirements.txt && python -m pip check && python -c "from app import app; print('Flask app import OK')" && python -m gunicorn --check-config app:app`으로 설정합니다. 의존성 설치, Flask 앱 import, Gunicorn 설정을 배포 전에 검사합니다.
 4. 최신 커밋을 다시 배포하고 `/healthz` 응답이 `{"status":"ok"}`인지 확인합니다.
 
-기존 `gunicorn "app:create_app()"` 명령도 호환되지만 위 표의 `app:app` 명령을 권장합니다.
+기존 `gunicorn "app:create_app()"`도 앱 구조상 호환되지만, 현재 배포 설정은 `python -m gunicorn app:app ...`을 권장합니다. `python -m` 형식을 사용하면 실행 파일 PATH 문제를 줄일 수 있습니다.
 
 ### Blueprint
 

@@ -68,7 +68,7 @@ API 사용료 및 Google 전송을 UI에 설명. 키를 입력해도 실제 연�
 
 6. 배포
 ----------------------------------------
-render.yaml: Python, gunicorn app:app, PORT 바인딩, 2 workers/4 threads, timeout 60, /healthz, 자동 SECRET_KEY 생성.
+render.yaml: Python, python -m gunicorn app:app, PORT 바인딩, 1 worker/4 threads, timeout 60, /healthz, 자동 SECRET_KEY 생성.
 현재 상위 저장소 안 scm 폴더 구조에 맞게 rootDir: scm 지정.
 독립 저장소 루트가 scm의 내용이라면 rootDir 줄을 제거해야 함.
 여러 worker에서 SECRET_KEY가 같아야 하므로 Render 환경 변수 필수.

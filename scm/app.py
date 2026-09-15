@@ -1,4 +1,4 @@
-﻿
+
 """Flow SCM: deterministic demo dashboard and user-key Gemini assistant."""
 from datetime import date, datetime, timedelta, timezone
 import csv

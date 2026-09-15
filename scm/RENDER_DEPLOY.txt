@@ -1,0 +1,38 @@
+Flow SCM - Render deployment settings
+=====================================
+
+This project is currently a FLASK app.
+The old Streamlit version is archived under legacy/ and must NOT be used for deployment.
+
+If the GitHub repository root is AX_Master_2 and this project is AX_Master_2/scm:
+- Root Directory: scm
+- Build Command:
+  python -m pip install -r requirements.txt && python -m pip check && python -c "from app import app; print('Flask app import OK')" && python -m gunicorn --check-config app:app
+- Start Command:
+  python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 --access-logfile - --error-logfile -
+- Health Check Path: /healthz
+- Environment Variable: PYTHON_VERSION=3.13.5
+- Environment Variable: SECRET_KEY=<a long random secret>
+
+If scm itself is a separate GitHub repository root:
+- Root Directory: leave blank
+- Use the same Build/Start commands above.
+
+IMPORTANT
+---------
+If the build log shows packages such as streamlit, numpy, pandas, matplotlib,
+plotly, python-pptx but does NOT show Flask and gunicorn, Render is reading the
+wrong requirements.txt (most likely legacy/requirements.txt or an old commit).
+
+The expected production dependencies are:
+- Flask
+- requests
+- gunicorn (Linux/Render only)
+
+After changing files:
+1. Commit and push the latest project to the branch connected to Render.
+2. In Render > Settings > Build & Deploy, verify Root Directory, Build Command,
+   and Start Command.
+3. In Render > Environment, verify PYTHON_VERSION and SECRET_KEY.
+4. Deploy the latest commit.
+5. A successful deploy should return {"status":"ok"} at /healthz.

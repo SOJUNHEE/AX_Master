@@ -4,8 +4,8 @@ services:
     runtime: python
     rootDir: scm
     plan: free
-    buildCommand: python -m pip install -r requirements.txt && python -m pip check && python -m gunicorn --check-config app:app
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
+    buildCommand: python -m pip install -r requirements.txt && python -m pip check && python -c "from app import app; print('Flask app import OK')" && python -m gunicorn --check-config app:app
+    startCommand: python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 --access-logfile - --error-logfile -
     healthCheckPath: /healthz
     envVars:
       - key: PYTHON_VERSION
